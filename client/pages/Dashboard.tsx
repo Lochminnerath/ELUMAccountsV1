@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { Plus, X, Flame, Zap, Moon, Heart } from "lucide-react";
+import { Plus, X, Flame, Zap, Moon, Heart, Search } from "lucide-react";
+import { searchFoods, type Food } from "@/lib/foods";
+import { getUserSettings } from "@/lib/settings";
 
 interface FoodEntry {
   id: string;
@@ -27,6 +29,8 @@ export default function Dashboard() {
   const [sleepHours, setSleepHours] = useState(0);
   const [sleepMinutes, setSleepMinutes] = useState(0);
   const [sleepQuality, setSleepQuality] = useState("Not logged");
+  const [dailyCalorieGoal, setDailyCalorieGoal] = useState(1600);
+  const [userName, setUserName] = useState("");
 
   // Form states
   const [showFoodForm, setShowFoodForm] = useState(false);
@@ -37,6 +41,8 @@ export default function Dashboard() {
     carbs: "",
     fats: "",
   });
+  const [foodSearchResults, setFoodSearchResults] = useState<Food[]>([]);
+  const [showFoodSearch, setShowFoodSearch] = useState(false);
 
   const [showExerciseForm, setShowExerciseForm] = useState(false);
   const [exerciseForm, setExerciseForm] = useState({
@@ -44,6 +50,13 @@ export default function Dashboard() {
     duration: "",
     caloriesBurned: "",
   });
+
+  // Load user settings on mount
+  useEffect(() => {
+    const settings = getUserSettings();
+    setDailyCalorieGoal(settings.calorieGoal);
+    setUserName(settings.name);
+  }, []);
 
   // Get current date
   const getFormattedDate = () => {
@@ -55,6 +68,33 @@ export default function Dashboard() {
       day: "numeric",
     };
     return today.toLocaleDateString("en-US", options);
+  };
+
+  // Handle food name input and show search results
+  const handleFoodNameChange = (value: string) => {
+    setFoodForm({ ...foodForm, name: value });
+
+    if (value.trim()) {
+      const results = searchFoods(value);
+      setFoodSearchResults(results);
+      setShowFoodSearch(results.length > 0);
+    } else {
+      setFoodSearchResults([]);
+      setShowFoodSearch(false);
+    }
+  };
+
+  // Select a food from search results
+  const handleSelectFood = (food: Food) => {
+    setFoodForm({
+      name: food.name,
+      calories: food.calories.toString(),
+      protein: food.protein.toString(),
+      carbs: food.carbs.toString(),
+      fats: food.fats.toString(),
+    });
+    setShowFoodSearch(false);
+    setFoodSearchResults([]);
   };
 
   // Add food
@@ -117,7 +157,6 @@ export default function Dashboard() {
     setExercises(exercises.filter((ex) => ex.id !== id));
   };
 
-  const dailyCalorieGoal = 2500;
   const totalCaloriesConsumed = foods.reduce((acc, food) => acc + food.calories, 0);
   const totalCaloriesBurned = exercises.reduce((acc, ex) => acc + ex.caloriesBurned, 0);
   const remainingCalories = dailyCalorieGoal + totalCaloriesBurned - totalCaloriesConsumed;
@@ -283,15 +322,39 @@ export default function Dashboard() {
 
               {showFoodForm && (
                 <div className="mb-6 space-y-3 rounded-lg border border-border bg-secondary/30 p-4">
-                  <input
-                    type="text"
-                    placeholder="Food name"
-                    value={foodForm.name}
-                    onChange={(e) =>
-                      setFoodForm({ ...foodForm, name: e.target.value })
-                    }
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                  />
+                  <div className="relative">
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-background">
+                      <Search className="ml-3 h-4 w-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Search foods (e.g. Chicken, Rice, Apple)"
+                        value={foodForm.name}
+                        onChange={(e) => handleFoodNameChange(e.target.value)}
+                        className="w-full border-0 bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none"
+                      />
+                    </div>
+                    {showFoodSearch && foodSearchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 z-10 mt-2 max-h-64 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+                        {foodSearchResults.map((food) => (
+                          <button
+                            key={food.id}
+                            onClick={() => handleSelectFood(food)}
+                            className="w-full border-b border-border/50 px-4 py-3 text-left transition-colors hover:bg-secondary/50 last:border-b-0"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{food.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {food.calories} cal | P: {food.protein}g C: {food.carbs}g F: {food.fats}g
+                                </p>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{food.servingSize}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <input
                     type="number"
                     placeholder="Calories"

@@ -30,7 +30,6 @@ export default function Dashboard() {
   const [sleepMinutes, setSleepMinutes] = useState(0);
   const [sleepQuality, setSleepQuality] = useState("Not logged");
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState(1600);
-  const [userName, setUserName] = useState("");
 
   // Form states
   const [showFoodForm, setShowFoodForm] = useState(false);
@@ -55,7 +54,6 @@ export default function Dashboard() {
   useEffect(() => {
     const settings = getUserSettings();
     setDailyCalorieGoal(settings.calorieGoal);
-    setUserName(settings.name);
   }, []);
 
   // Get current date
@@ -99,11 +97,7 @@ export default function Dashboard() {
 
   // Add food
   const handleAddFood = () => {
-    if (
-      !foodForm.name ||
-      !foodForm.calories ||
-      foodForm.calories === ""
-    ) {
+    if (!foodForm.name || !foodForm.calories || foodForm.calories === "") {
       return;
     }
 
@@ -183,7 +177,9 @@ export default function Dashboard() {
           <div className="mb-8 rounded-xl border border-border bg-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-muted-foreground">Current Streak</h2>
+                <h2 className="text-sm font-semibold text-muted-foreground">
+                  Current Streak
+                </h2>
                 <p className="mt-2 text-4xl font-bold text-primary">{streak} Days</p>
               </div>
               <div className="flex items-center gap-4">
@@ -203,12 +199,18 @@ export default function Dashboard() {
           <div className="mb-8 grid gap-6 lg:grid-cols-3">
             {/* Main calorie card */}
             <div className="rounded-xl border border-border bg-card p-8 lg:col-span-2">
-              <h2 className="mb-6 text-lg font-semibold text-foreground">Calorie Balance</h2>
+              <h2 className="mb-6 text-lg font-semibold text-foreground">
+                Calorie Balance
+              </h2>
 
               <div className="mb-8 flex items-end justify-around">
                 <div className="text-center">
-                  <div className="mb-2 text-sm font-medium text-muted-foreground">Goal</div>
-                  <div className="text-3xl font-bold text-foreground">{dailyCalorieGoal}</div>
+                  <div className="mb-2 text-sm font-medium text-muted-foreground">
+                    Goal
+                  </div>
+                  <div className="text-3xl font-bold text-foreground">
+                    {dailyCalorieGoal}
+                  </div>
                   <div className="text-xs text-muted-foreground">base</div>
                 </div>
 
@@ -217,8 +219,12 @@ export default function Dashboard() {
                 </div>
 
                 <div className="text-center">
-                  <div className="mb-2 text-sm font-medium text-muted-foreground">Burned</div>
-                  <div className="text-3xl font-bold text-carbs">{totalCaloriesBurned}</div>
+                  <div className="mb-2 text-sm font-medium text-muted-foreground">
+                    Burned
+                  </div>
+                  <div className="text-3xl font-bold text-carbs">
+                    {totalCaloriesBurned}
+                  </div>
                   <div className="text-xs text-muted-foreground">exercise</div>
                 </div>
 
@@ -227,15 +233,21 @@ export default function Dashboard() {
                 </div>
 
                 <div className="text-center">
-                  <div className="mb-2 text-sm font-medium text-muted-foreground">Eaten</div>
-                  <div className="text-3xl font-bold text-calories">{totalCaloriesConsumed}</div>
+                  <div className="mb-2 text-sm font-medium text-muted-foreground">
+                    Eaten
+                  </div>
+                  <div className="text-3xl font-bold text-calories">
+                    {totalCaloriesConsumed}
+                  </div>
                   <div className="text-xs text-muted-foreground">consumed</div>
                 </div>
               </div>
 
               {/* Remaining Calories */}
               <div className="rounded-lg bg-secondary/50 p-6 text-center">
-                <div className="text-sm font-medium text-muted-foreground">Remaining</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Remaining
+                </div>
                 <div
                   className={`mt-2 text-5xl font-bold ${
                     remainingCalories > 0 ? "text-success" : "text-destructive"
@@ -264,7 +276,9 @@ export default function Dashboard() {
                 <div className="mt-2 h-2 w-full rounded-full bg-secondary">
                   <div
                     className="h-full rounded-full bg-protein transition-all"
-                    style={{ width: `${Math.min((totalProtein / proteinGoal) * 100, 100)}%` }}
+                    style={{
+                      width: `${Math.min((totalProtein / proteinGoal) * 100, 100)}%`,
+                    }}
                   />
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">Goal: {proteinGoal}g</p>
@@ -281,7 +295,9 @@ export default function Dashboard() {
                 <div className="mt-2 h-2 w-full rounded-full bg-secondary">
                   <div
                     className="h-full rounded-full bg-carbs transition-all"
-                    style={{ width: `${Math.min((totalCarbs / carbsGoal) * 100, 100)}%` }}
+                    style={{
+                      width: `${Math.min((totalCarbs / carbsGoal) * 100, 100)}%`,
+                    }}
                   />
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">Goal: {carbsGoal}g</p>
@@ -298,7 +314,9 @@ export default function Dashboard() {
                 <div className="mt-2 h-2 w-full rounded-full bg-secondary">
                   <div
                     className="h-full rounded-full bg-fats transition-all"
-                    style={{ width: `${Math.min((totalFats / fatsGoal) * 100, 100)}%` }}
+                    style={{
+                      width: `${Math.min((totalFats / fatsGoal) * 100, 100)}%`,
+                    }}
                   />
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">Goal: {fatsGoal}g</p>
@@ -343,12 +361,17 @@ export default function Dashboard() {
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-foreground">{food.name}</p>
+                                <p className="text-sm font-medium text-foreground">
+                                  {food.name}
+                                </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {food.calories} cal | P: {food.protein}g C: {food.carbs}g F: {food.fats}g
+                                  {food.calories} cal | P: {food.protein}g C:{" "}
+                                  {food.carbs}g F: {food.fats}g
                                 </p>
                               </div>
-                              <p className="text-xs text-muted-foreground">{food.servingSize}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {food.servingSize}
+                              </p>
                             </div>
                           </button>
                         ))}
@@ -556,7 +579,9 @@ export default function Dashboard() {
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-border bg-card p-6">
               <div className="mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Sleep Tracking</h2>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Sleep Tracking
+                </h2>
               </div>
               <div className="mb-6 space-y-3">
                 <div>
@@ -570,7 +595,9 @@ export default function Dashboard() {
                         min="0"
                         max="23"
                         value={sleepHours}
-                        onChange={(e) => setSleepHours(parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          setSleepHours(parseInt(e.target.value) || 0)
+                        }
                         placeholder="Hours"
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
                       />
@@ -582,7 +609,9 @@ export default function Dashboard() {
                         min="0"
                         max="59"
                         value={sleepMinutes}
-                        onChange={(e) => setSleepMinutes(parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          setSleepMinutes(parseInt(e.target.value) || 0)
+                        }
                         placeholder="Minutes"
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
                       />
@@ -592,7 +621,9 @@ export default function Dashboard() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-foreground">Quality</label>
+                  <label className="text-sm font-medium text-foreground">
+                    Quality
+                  </label>
                   <select
                     value={sleepQuality}
                     onChange={(e) => setSleepQuality(e.target.value)}
@@ -613,21 +644,28 @@ export default function Dashboard() {
                   <p className="mt-2 text-3xl font-bold text-primary">
                     {sleepHours}h {sleepMinutes}m
                   </p>
-                  <p className="mt-2 text-sm text-muted-foreground">Quality: {sleepQuality}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Quality: {sleepQuality}
+                  </p>
                 </div>
               )}
             </div>
 
             <div className="rounded-xl border border-border bg-card p-6">
               <div className="mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Mental Wellness</h2>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Mental Wellness
+                </h2>
               </div>
-              <p className="mb-4 text-sm text-muted-foreground">Daily check-in available at 7 PM</p>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Daily check-in available at 7 PM
+              </p>
               <div className="space-y-3">
                 <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-sm font-medium text-foreground">Status</p>
                   <p className="mt-2 text-lg text-muted-foreground">
-                    Complete your evening questionnaire to track mood, stress level, and daily strengths/weaknesses.
+                    Complete your evening questionnaire to track mood, stress
+                    level, and daily strengths/weaknesses.
                   </p>
                 </div>
                 <button className="w-full rounded-lg border border-primary bg-transparent py-2 text-sm font-semibold text-primary transition-all hover:bg-primary/10">

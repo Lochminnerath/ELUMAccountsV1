@@ -9,9 +9,9 @@ export default function Progress() {
     const caloriesIn = log.foods.reduce((acc, food) => acc + food.calories, 0);
     const caloriesOut = log.exercises.reduce((acc, ex) => acc + ex.caloriesBurned, 0);
     const sleepTotal = log.sleep.hours + log.sleep.minutes / 60;
+    const calmness = 6 - log.questionnaire.stress;
     const mentalAverage =
-      (log.questionnaire.mood + log.questionnaire.stress + log.questionnaire.energy + log.questionnaire.focus) /
-      4;
+      (log.questionnaire.mood + calmness + log.questionnaire.energy + log.questionnaire.focus) / 4;
 
     return {
       day: formatDisplayDate(log.date),
@@ -20,6 +20,7 @@ export default function Progress() {
       net: caloriesIn - caloriesOut,
       sleep: Number(sleepTotal.toFixed(1)),
       mood: Number(mentalAverage.toFixed(1)),
+      water: log.waterOunces,
       questionnaireDone: log.questionnaire.completed ? "Yes" : "No",
     };
   });
@@ -78,6 +79,7 @@ export default function Progress() {
                   <th className="py-2">Burned</th>
                   <th className="py-2">Net</th>
                   <th className="py-2">Sleep</th>
+                  <th className="py-2">Water</th>
                   <th className="py-2">Mental Avg</th>
                   <th className="py-2">Questionnaire</th>
                 </tr>
@@ -90,6 +92,7 @@ export default function Progress() {
                     <td className="py-2">{row.caloriesOut}</td>
                     <td className="py-2">{row.net}</td>
                     <td className="py-2">{row.sleep}h</td>
+                    <td className="py-2">{row.water} oz</td>
                     <td className="py-2">{row.mood}/5</td>
                     <td className="py-2">{row.questionnaireDone}</td>
                   </tr>

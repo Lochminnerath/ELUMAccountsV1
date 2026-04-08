@@ -24,6 +24,7 @@ import {
 } from "recharts";
 
 const SUSTAINED_DEFICIT = 400;
+const DAILY_WATER_GOAL_OZ = 75;
 
 export default function Dashboard() {
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState(1600);
@@ -150,12 +151,19 @@ export default function Dashboard() {
     },
   ].filter((item) => item.value > 0);
 
+  const invertedStressScore = 6 - dailyLog.questionnaire.stress;
   const mentalChartData = [
     { subject: "Mood", score: dailyLog.questionnaire.mood },
-    { subject: "Stress", score: dailyLog.questionnaire.stress },
+    { subject: "Calmness", score: invertedStressScore },
     { subject: "Energy", score: dailyLog.questionnaire.energy },
     { subject: "Focus", score: dailyLog.questionnaire.focus },
   ];
+
+  const mentalWellnessScore =
+    (dailyLog.questionnaire.mood + invertedStressScore + dailyLog.questionnaire.energy + dailyLog.questionnaire.focus) /
+    4;
+
+  const hydrationPercent = Math.min((dailyLog.waterOunces / DAILY_WATER_GOAL_OZ) * 100, 100);
 
   const getFormattedDate = () => {
     const today = new Date();
@@ -173,6 +181,30 @@ export default function Dashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">AF Health Daily Dashboard</h1>
           <p className="mt-2 text-muted-foreground">{getFormattedDate()}</p>
+        </div>
+
+        <div className="mb-8 rounded-xl border border-border bg-card p-6">
+          <h2 className="mb-4 text-lg font-semibold">Hydration</h2>
+          <div className="grid gap-4 md:grid-cols-[1fr_auto]">
+            <label className="text-sm font-medium text-foreground">
+              Water intake (oz)
+              <input
+                type="number"
+                min="0"
+                value={dailyLog.waterOunces}
+                onChange={(event) => updateLog({ waterOunces: parseInt(event.target.value) || 0 })}
+                className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2"
+              />
+            </label>
+            <div className="rounded-lg bg-secondary/50 p-4 text-right">
+              <p className="text-sm text-muted-foreground">Daily water goal</p>
+              <p className="text-3xl font-bold text-foreground">{DAILY_WATER_GOAL_OZ} oz</p>
+              <p className="text-xs text-muted-foreground">{Math.round(hydrationPercent)}% complete</p>
+            </div>
+          </div>
+          <div className="mt-4 h-3 w-full rounded-full bg-secondary">
+            <div className="h-3 rounded-full bg-blue-500" style={{ width: `${hydrationPercent}%` }} />
+          </div>
         </div>
 
         <div className="mb-8 rounded-xl border border-border bg-card p-6">
@@ -320,10 +352,10 @@ export default function Dashboard() {
 
           <div className="rounded-xl border border-border bg-card p-6">
             <h2 className="mb-4 text-lg font-semibold">Evening Mental Health Questionnaire</h2>
-            <p className="mb-3 text-sm text-muted-foreground">Complete this daily check-in to keep your weekly trend data accurate.</p>
+            <p className="mb-3 text-sm text-muted-foreground">Use this daily check-in for a more accurate mental wellness trend. For stress, 1 = calm and 5 = very high stress.</p>
             {[
               { key: "mood", label: "Mood (1-5)" },
-              { key: "stress", label: "Stress (1-5)" },
+              { key: "stress", label: "Stress Load (1-5)" },
               { key: "energy", label: "Energy (1-5)" },
               { key: "focus", label: "Focus (1-5)" },
             ].map((item) => (
@@ -360,6 +392,9 @@ export default function Dashboard() {
               placeholder="How did you feel today?"
               className="mt-2 w-full rounded border border-border px-2 py-2 text-sm"
             />
+            <div className="mt-4 rounded-lg bg-secondary/40 p-3 text-sm">
+              Mental wellness score: <span className="font-semibold">{mentalWellnessScore.toFixed(1)} / 5</span>
+            </div>
             <div className="mt-4 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={mentalChartData} outerRadius={80}>

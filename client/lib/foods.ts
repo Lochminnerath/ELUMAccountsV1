@@ -77,6 +77,13 @@ const foodDatabase: Food[] = [
   { id: "48", name: "Protein Shake", calories: 200, protein: 25, carbs: 10, fats: 2, servingSize: "1 shake" },
   { id: "49", name: "Trail Mix", calories: 567, protein: 17, carbs: 45, fats: 35, servingSize: "100g" },
   { id: "50", name: "Crackers", calories: 421, protein: 8, carbs: 71, fats: 11, servingSize: "100g" },
+  { id: "61", name: "Potato Chips", calories: 536, protein: 7, carbs: 53, fats: 35, servingSize: "100g" },
+  { id: "62", name: "Pepperoni Pizza", calories: 298, protein: 13, carbs: 33, fats: 13, servingSize: "1 slice" },
+  { id: "63", name: "Milk Chocolate", calories: 535, protein: 7.7, carbs: 59, fats: 30, servingSize: "100g" },
+  { id: "64", name: "Soda", calories: 140, protein: 0, carbs: 39, fats: 0, servingSize: "12 fl oz" },
+  { id: "65", name: "French Fries", calories: 312, protein: 3.4, carbs: 41, fats: 15, servingSize: "100g" },
+  { id: "66", name: "Donut", calories: 452, protein: 4.9, carbs: 51, fats: 25, servingSize: "100g" },
+  { id: "67", name: "Ice Cream", calories: 207, protein: 3.5, carbs: 24, fats: 11, servingSize: "1 cup" },
   
   // Additional proteins
   { id: "51", name: "Beef Steak", calories: 271, protein: 26, carbs: 0, fats: 18, servingSize: "100g" },

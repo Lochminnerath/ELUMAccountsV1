@@ -1,37 +1,34 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/Layout";
-import { Plus, X, Flame, Zap, Moon, Heart, Search } from "lucide-react";
+import { Flame, Heart, Moon, Plus, Search, X, Zap } from "lucide-react";
 import { searchFoods, type Food } from "@/lib/foods";
 import { getUserSettings } from "@/lib/settings";
+import {
+  type DailyLog,
+  type ExerciseEntry,
+  type FoodEntry,
+  getDailyLog,
+  getTodayKey,
+  saveDailyLog,
+} from "@/lib/tracker";
+import {
+  Pie,
+  PieChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+} from "recharts";
 
-interface FoodEntry {
-  id: string;
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  time: string;
-}
-
-interface ExerciseEntry {
-  id: string;
-  name: string;
-  duration: number;
-  caloriesBurned: number;
-  time: string;
-}
+const SUSTAINED_DEFICIT = 400;
 
 export default function Dashboard() {
-  const [foods, setFoods] = useState<FoodEntry[]>([]);
-  const [exercises, setExercises] = useState<ExerciseEntry[]>([]);
-  const [streak, setStreak] = useState(0);
-  const [sleepHours, setSleepHours] = useState(0);
-  const [sleepMinutes, setSleepMinutes] = useState(0);
-  const [sleepQuality, setSleepQuality] = useState("Not logged");
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState(1600);
+  const [dailyLog, setDailyLog] = useState<DailyLog>(() => getDailyLog(getTodayKey()));
 
-  // Form states
   const [showFoodForm, setShowFoodForm] = useState(false);
   const [foodForm, setFoodForm] = useState({
     name: "",
@@ -50,25 +47,19 @@ export default function Dashboard() {
     caloriesBurned: "",
   });
 
-  // Load user settings on mount
   useEffect(() => {
     const settings = getUserSettings();
     setDailyCalorieGoal(settings.calorieGoal);
   }, []);
 
-  // Get current date
-  const getFormattedDate = () => {
-    const today = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    return today.toLocaleDateString("en-US", options);
+  useEffect(() => {
+    saveDailyLog(dailyLog);
+  }, [dailyLog]);
+
+  const updateLog = (updates: Partial<DailyLog>) => {
+    setDailyLog((current) => ({ ...current, ...updates }));
   };
 
-  // Handle food name input and show search results
   const handleFoodNameChange = (value: string) => {
     setFoodForm({ ...foodForm, name: value });
 
@@ -76,13 +67,13 @@ export default function Dashboard() {
       const results = searchFoods(value);
       setFoodSearchResults(results);
       setShowFoodSearch(results.length > 0);
-    } else {
-      setFoodSearchResults([]);
-      setShowFoodSearch(false);
+      return;
     }
+
+    setFoodSearchResults([]);
+    setShowFoodSearch(false);
   };
 
-  // Select a food from search results
   const handleSelectFood = (food: Food) => {
     setFoodForm({
       name: food.name,
@@ -92,14 +83,10 @@ export default function Dashboard() {
       fats: food.fats.toString(),
     });
     setShowFoodSearch(false);
-    setFoodSearchResults([]);
   };
 
-  // Add food
   const handleAddFood = () => {
-    if (!foodForm.name || !foodForm.calories || foodForm.calories === "") {
-      return;
-    }
+    if (!foodForm.name || !foodForm.calories) return;
 
     const newFood: FoodEntry = {
       id: Date.now().toString(),
@@ -108,570 +95,280 @@ export default function Dashboard() {
       protein: parseInt(foodForm.protein) || 0,
       carbs: parseInt(foodForm.carbs) || 0,
       fats: parseInt(foodForm.fats) || 0,
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
+      time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
     };
 
-    setFoods([...foods, newFood]);
+    updateLog({ foods: [...dailyLog.foods, newFood] });
     setFoodForm({ name: "", calories: "", protein: "", carbs: "", fats: "" });
     setShowFoodForm(false);
   };
 
-  // Remove food
-  const handleRemoveFood = (id: string) => {
-    setFoods(foods.filter((food) => food.id !== id));
-  };
-
-  // Add exercise
   const handleAddExercise = () => {
-    if (!exerciseForm.name || !exerciseForm.caloriesBurned) {
-      return;
-    }
+    if (!exerciseForm.name || !exerciseForm.caloriesBurned) return;
 
     const newExercise: ExerciseEntry = {
       id: Date.now().toString(),
       name: exerciseForm.name,
       duration: parseInt(exerciseForm.duration) || 0,
       caloriesBurned: parseInt(exerciseForm.caloriesBurned) || 0,
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
+      time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
     };
 
-    setExercises([...exercises, newExercise]);
+    updateLog({ exercises: [...dailyLog.exercises, newExercise] });
     setExerciseForm({ name: "", duration: "", caloriesBurned: "" });
     setShowExerciseForm(false);
   };
 
-  // Remove exercise
-  const handleRemoveExercise = (id: string) => {
-    setExercises(exercises.filter((ex) => ex.id !== id));
-  };
+  const totalCaloriesConsumed = useMemo(
+    () => dailyLog.foods.reduce((acc, food) => acc + food.calories, 0),
+    [dailyLog.foods],
+  );
+  const totalCaloriesBurned = useMemo(
+    () => dailyLog.exercises.reduce((acc, exercise) => acc + exercise.caloriesBurned, 0),
+    [dailyLog.exercises],
+  );
 
-  const totalCaloriesConsumed = foods.reduce((acc, food) => acc + food.calories, 0);
-  const totalCaloriesBurned = exercises.reduce((acc, ex) => acc + ex.caloriesBurned, 0);
+  const totalProtein = dailyLog.foods.reduce((acc, food) => acc + food.protein, 0);
+  const totalCarbs = dailyLog.foods.reduce((acc, food) => acc + food.carbs, 0);
+  const totalFats = dailyLog.foods.reduce((acc, food) => acc + food.fats, 0);
+
   const remainingCalories = dailyCalorieGoal + totalCaloriesBurned - totalCaloriesConsumed;
+  const goalForChart = Math.max(dailyCalorieGoal, 1);
+  const caloriesTowardGoal = Math.min(totalCaloriesConsumed, goalForChart);
 
-  const totalProtein = foods.reduce((acc, food) => acc + food.protein, 0);
-  const totalCarbs = foods.reduce((acc, food) => acc + food.carbs, 0);
-  const totalFats = foods.reduce((acc, food) => acc + food.fats, 0);
+  const caloriePieData = [
+    { name: "Consumed", value: caloriesTowardGoal, color: "#f97316" },
+    {
+      name: "Deficit Target (400)",
+      value: Math.min(SUSTAINED_DEFICIT, Math.max(goalForChart - caloriesTowardGoal, 0)),
+      color: "#2563eb",
+    },
+    {
+      name: "Remaining",
+      value: Math.max(goalForChart - caloriesTowardGoal - SUSTAINED_DEFICIT, 0),
+      color: "#22c55e",
+    },
+  ].filter((item) => item.value > 0);
 
-  const proteinGoal = 150;
-  const carbsGoal = 300;
-  const fatsGoal = 85;
+  const mentalChartData = [
+    { subject: "Mood", score: dailyLog.questionnaire.mood },
+    { subject: "Stress", score: dailyLog.questionnaire.stress },
+    { subject: "Energy", score: dailyLog.questionnaire.energy },
+    { subject: "Focus", score: dailyLog.questionnaire.focus },
+  ];
+
+  const getFormattedDate = () => {
+    const today = new Date();
+    return today.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   return (
     <Layout>
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Today's Summary</h1>
-            <p className="mt-2 text-muted-foreground">{getFormattedDate()}</p>
-          </div>
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">AF Health Daily Dashboard</h1>
+          <p className="mt-2 text-muted-foreground">{getFormattedDate()}</p>
+        </div>
 
-          {/* Streak Counter */}
-          <div className="mb-8 rounded-xl border border-border bg-card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-semibold text-muted-foreground">
-                  Current Streak
-                </h2>
-                <p className="mt-2 text-4xl font-bold text-primary">{streak} Days</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <input
-                  type="number"
-                  min="0"
-                  value={streak}
-                  onChange={(e) => setStreak(parseInt(e.target.value) || 0)}
-                  className="w-20 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground"
-                  placeholder="Days"
-                />
-              </div>
+        <div className="mb-8 rounded-xl border border-border bg-card p-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            <label className="text-sm font-medium text-foreground">
+              Streak (days)
+              <input
+                type="number"
+                min="0"
+                value={dailyLog.streak}
+                onChange={(event) =>
+                  updateLog({ streak: parseInt(event.target.value) || 0 })
+                }
+                className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2"
+              />
+            </label>
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <p className="text-sm text-muted-foreground">Daily calorie goal</p>
+              <p className="text-3xl font-bold text-foreground">{dailyCalorieGoal}</p>
+              <p className="text-xs text-muted-foreground">Default target: 1600</p>
             </div>
-          </div>
-
-          {/* Main Calorie Tracking */}
-          <div className="mb-8 grid gap-6 lg:grid-cols-3">
-            {/* Main calorie card */}
-            <div className="rounded-xl border border-border bg-card p-8 lg:col-span-2">
-              <h2 className="mb-6 text-lg font-semibold text-foreground">
-                Calorie Balance
-              </h2>
-
-              <div className="mb-8 flex items-end justify-around">
-                <div className="text-center">
-                  <div className="mb-2 text-sm font-medium text-muted-foreground">
-                    Goal
-                  </div>
-                  <div className="text-3xl font-bold text-foreground">
-                    {dailyCalorieGoal}
-                  </div>
-                  <div className="text-xs text-muted-foreground">base</div>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <div className="text-sm font-medium text-muted-foreground">+</div>
-                </div>
-
-                <div className="text-center">
-                  <div className="mb-2 text-sm font-medium text-muted-foreground">
-                    Burned
-                  </div>
-                  <div className="text-3xl font-bold text-carbs">
-                    {totalCaloriesBurned}
-                  </div>
-                  <div className="text-xs text-muted-foreground">exercise</div>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <div className="text-sm font-medium text-muted-foreground">-</div>
-                </div>
-
-                <div className="text-center">
-                  <div className="mb-2 text-sm font-medium text-muted-foreground">
-                    Eaten
-                  </div>
-                  <div className="text-3xl font-bold text-calories">
-                    {totalCaloriesConsumed}
-                  </div>
-                  <div className="text-xs text-muted-foreground">consumed</div>
-                </div>
-              </div>
-
-              {/* Remaining Calories */}
-              <div className="rounded-lg bg-secondary/50 p-6 text-center">
-                <div className="text-sm font-medium text-muted-foreground">
-                  Remaining
-                </div>
-                <div
-                  className={`mt-2 text-5xl font-bold ${
-                    remainingCalories > 0 ? "text-success" : "text-destructive"
-                  }`}
-                >
-                  {remainingCalories}
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {remainingCalories > 0
-                    ? "You can still eat this many calories"
-                    : "You have exceeded your calorie goal"}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="space-y-6">
-              <div className="rounded-xl border border-border bg-card p-6">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-protein">
-                    <Flame className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-semibold text-foreground">Protein</h3>
-                </div>
-                <div className="text-2xl font-bold text-protein">{totalProtein}g</div>
-                <div className="mt-2 h-2 w-full rounded-full bg-secondary">
-                  <div
-                    className="h-full rounded-full bg-protein transition-all"
-                    style={{
-                      width: `${Math.min((totalProtein / proteinGoal) * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">Goal: {proteinGoal}g</p>
-              </div>
-
-              <div className="rounded-xl border border-border bg-card p-6">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-carbs">
-                    <Zap className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-semibold text-foreground">Carbs</h3>
-                </div>
-                <div className="text-2xl font-bold text-carbs">{totalCarbs}g</div>
-                <div className="mt-2 h-2 w-full rounded-full bg-secondary">
-                  <div
-                    className="h-full rounded-full bg-carbs transition-all"
-                    style={{
-                      width: `${Math.min((totalCarbs / carbsGoal) * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">Goal: {carbsGoal}g</p>
-              </div>
-
-              <div className="rounded-xl border border-border bg-card p-6">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-fats">
-                    <Heart className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-semibold text-foreground">Fats</h3>
-                </div>
-                <div className="text-2xl font-bold text-fats">{totalFats}g</div>
-                <div className="mt-2 h-2 w-full rounded-full bg-secondary">
-                  <div
-                    className="h-full rounded-full bg-fats transition-all"
-                    style={{
-                      width: `${Math.min((totalFats / fatsGoal) * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">Goal: {fatsGoal}g</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Food Entries */}
-          <div className="mb-8 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-border bg-card p-6">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground">Food Intake</h2>
-                <button
-                  onClick={() => setShowFoodForm(!showFoodForm)}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Food
-                </button>
-              </div>
-
-              {showFoodForm && (
-                <div className="mb-6 space-y-3 rounded-lg border border-border bg-secondary/30 p-4">
-                  <div className="relative">
-                    <div className="flex items-center gap-2 rounded-lg border border-border bg-background">
-                      <Search className="ml-3 h-4 w-4 text-muted-foreground" />
-                      <input
-                        type="text"
-                        placeholder="Search foods (e.g. Chicken, Rice, Apple)"
-                        value={foodForm.name}
-                        onChange={(e) => handleFoodNameChange(e.target.value)}
-                        className="w-full border-0 bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none"
-                      />
-                    </div>
-                    {showFoodSearch && foodSearchResults.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-10 mt-2 max-h-64 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
-                        {foodSearchResults.map((food) => (
-                          <button
-                            key={food.id}
-                            onClick={() => handleSelectFood(food)}
-                            className="w-full border-b border-border/50 px-4 py-3 text-left transition-colors hover:bg-secondary/50 last:border-b-0"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm font-medium text-foreground">
-                                  {food.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {food.calories} cal | P: {food.protein}g C:{" "}
-                                  {food.carbs}g F: {food.fats}g
-                                </p>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                {food.servingSize}
-                              </p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    type="number"
-                    placeholder="Calories"
-                    value={foodForm.calories}
-                    onChange={(e) =>
-                      setFoodForm({ ...foodForm, calories: e.target.value })
-                    }
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                  />
-                  <div className="grid grid-cols-3 gap-3">
-                    <input
-                      type="number"
-                      placeholder="Protein (g)"
-                      value={foodForm.protein}
-                      onChange={(e) =>
-                        setFoodForm({ ...foodForm, protein: e.target.value })
-                      }
-                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Carbs (g)"
-                      value={foodForm.carbs}
-                      onChange={(e) =>
-                        setFoodForm({ ...foodForm, carbs: e.target.value })
-                      }
-                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Fats (g)"
-                      value={foodForm.fats}
-                      onChange={(e) =>
-                        setFoodForm({ ...foodForm, fats: e.target.value })
-                      }
-                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleAddFood}
-                      className="flex-1 rounded-lg bg-primary py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => setShowFoodForm(false)}
-                      className="flex-1 rounded-lg border border-border bg-background py-2 text-sm font-semibold text-foreground transition-all hover:bg-secondary"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                {foods.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    No foods added yet
-                  </p>
-                ) : (
-                  foods.map((food) => (
-                    <div
-                      key={food.id}
-                      className="flex items-center justify-between rounded-lg bg-secondary/50 p-4"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{food.name}</p>
-                        <p className="text-xs text-muted-foreground">{food.time}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="font-semibold text-foreground">
-                            {food.calories}
-                          </p>
-                          <p className="text-xs text-muted-foreground">cal</p>
-                        </div>
-                        <button
-                          onClick={() => handleRemoveFood(food.id)}
-                          className="rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Exercise Entries */}
-            <div className="rounded-xl border border-border bg-card p-6">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground">Exercises</h2>
-                <button
-                  onClick={() => setShowExerciseForm(!showExerciseForm)}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Exercise
-                </button>
-              </div>
-
-              {showExerciseForm && (
-                <div className="mb-6 space-y-3 rounded-lg border border-border bg-secondary/30 p-4">
-                  <input
-                    type="text"
-                    placeholder="Exercise name"
-                    value={exerciseForm.name}
-                    onChange={(e) =>
-                      setExerciseForm({ ...exerciseForm, name: e.target.value })
-                    }
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="number"
-                      placeholder="Duration (min)"
-                      value={exerciseForm.duration}
-                      onChange={(e) =>
-                        setExerciseForm({
-                          ...exerciseForm,
-                          duration: e.target.value,
-                        })
-                      }
-                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Calories burned"
-                      value={exerciseForm.caloriesBurned}
-                      onChange={(e) =>
-                        setExerciseForm({
-                          ...exerciseForm,
-                          caloriesBurned: e.target.value,
-                        })
-                      }
-                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleAddExercise}
-                      className="flex-1 rounded-lg bg-primary py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => setShowExerciseForm(false)}
-                      className="flex-1 rounded-lg border border-border bg-background py-2 text-sm font-semibold text-foreground transition-all hover:bg-secondary"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                {exercises.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    No exercises added yet
-                  </p>
-                ) : (
-                  exercises.map((exercise) => (
-                    <div
-                      key={exercise.id}
-                      className="flex items-center justify-between rounded-lg bg-secondary/50 p-4"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">
-                          {exercise.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {exercise.time} • {exercise.duration} min
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="font-semibold text-carbs">
-                            +{exercise.caloriesBurned}
-                          </p>
-                          <p className="text-xs text-muted-foreground">cal</p>
-                        </div>
-                        <button
-                          onClick={() => handleRemoveExercise(exercise.id)}
-                          className="rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Sleep & Wellness */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-border bg-card p-6">
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Sleep Tracking
-                </h2>
-              </div>
-              <div className="mb-6 space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-foreground">
-                    Sleep Duration
-                  </label>
-                  <div className="mt-2 flex gap-3">
-                    <div className="flex-1">
-                      <input
-                        type="number"
-                        min="0"
-                        max="23"
-                        value={sleepHours}
-                        onChange={(e) =>
-                          setSleepHours(parseInt(e.target.value) || 0)
-                        }
-                        placeholder="Hours"
-                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                      />
-                      <p className="mt-1 text-xs text-muted-foreground">Hours</p>
-                    </div>
-                    <div className="flex-1">
-                      <input
-                        type="number"
-                        min="0"
-                        max="59"
-                        value={sleepMinutes}
-                        onChange={(e) =>
-                          setSleepMinutes(parseInt(e.target.value) || 0)
-                        }
-                        placeholder="Minutes"
-                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground"
-                      />
-                      <p className="mt-1 text-xs text-muted-foreground">Minutes</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-foreground">
-                    Quality
-                  </label>
-                  <select
-                    value={sleepQuality}
-                    onChange={(e) => setSleepQuality(e.target.value)}
-                    className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
-                  >
-                    <option>Not logged</option>
-                    <option>Poor</option>
-                    <option>Fair</option>
-                    <option>Good</option>
-                    <option>Excellent</option>
-                  </select>
-                </div>
-              </div>
-
-              {(sleepHours > 0 || sleepMinutes > 0) && (
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-sm font-medium text-foreground">Total Sleep</p>
-                  <p className="mt-2 text-3xl font-bold text-primary">
-                    {sleepHours}h {sleepMinutes}m
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Quality: {sleepQuality}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-border bg-card p-6">
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Mental Wellness
-                </h2>
-              </div>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Daily check-in available at 7 PM
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <p className="text-sm text-muted-foreground">Remaining</p>
+              <p className={`text-3xl font-bold ${remainingCalories >= 0 ? "text-green-600" : "text-red-600"}`}>
+                {remainingCalories}
               </p>
-              <div className="space-y-3">
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-sm font-medium text-foreground">Status</p>
-                  <p className="mt-2 text-lg text-muted-foreground">
-                    Complete your evening questionnaire to track mood, stress
-                    level, and daily strengths/weaknesses.
-                  </p>
+              <p className="text-xs text-muted-foreground">Includes exercise and food logs.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-8 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="mb-4 text-lg font-semibold">Daily Calorie Intake Pie</h2>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={caloriePieData} dataKey="value" nameKey="name" innerRadius={65} outerRadius={105}>
+                    {caloriePieData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              The 400-calorie sustained deficit segment is shown in blue.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="mb-4 text-lg font-semibold">Macro Progress</h2>
+            {[{ label: "Protein", value: totalProtein, goal: 150, color: "bg-red-500", icon: Flame }, { label: "Carbs", value: totalCarbs, goal: 300, color: "bg-yellow-500", icon: Zap }, { label: "Fats", value: totalFats, goal: 85, color: "bg-pink-500", icon: Heart }].map(({ label, value, goal, color, icon: Icon }) => (
+              <div key={label} className="mb-5">
+                <div className="mb-1 flex items-center gap-2 text-sm font-medium"><Icon className="h-4 w-4" /> {label}: {Math.round(value)} / {goal}g</div>
+                <div className="h-2 w-full rounded-full bg-secondary">
+                  <div className={`h-2 rounded-full ${color}`} style={{ width: `${Math.min((value / goal) * 100, 100)}%` }} />
                 </div>
-                <button className="w-full rounded-lg border border-primary bg-transparent py-2 text-sm font-semibold text-primary transition-all hover:bg-primary/10">
-                  Complete Evening Check-in
-                </button>
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-8 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-xl border border-border bg-card p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Food Intake</h2>
+              <button onClick={() => setShowFoodForm((show) => !show)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Add Food</button>
+            </div>
+            {showFoodForm && (
+              <div className="mb-4 space-y-2 rounded-lg border border-border p-3">
+                <div className="relative">
+                  <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <input value={foodForm.name} onChange={(event) => handleFoodNameChange(event.target.value)} placeholder="Search foods" className="w-full bg-transparent py-2 outline-none" />
+                  </div>
+                  {showFoodSearch && (
+                    <div className="absolute z-10 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-border bg-card">
+                      {foodSearchResults.map((food) => (
+                        <button key={food.id} onClick={() => handleSelectFood(food)} className="w-full border-b border-border/50 px-3 py-2 text-left text-sm hover:bg-secondary/50">{food.name} ({food.calories} cal)</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  <input value={foodForm.calories} onChange={(event) => setFoodForm({ ...foodForm, calories: event.target.value })} type="number" placeholder="Calories" className="rounded border border-border px-2 py-1" />
+                  <input value={foodForm.protein} onChange={(event) => setFoodForm({ ...foodForm, protein: event.target.value })} type="number" placeholder="Protein" className="rounded border border-border px-2 py-1" />
+                  <input value={foodForm.carbs} onChange={(event) => setFoodForm({ ...foodForm, carbs: event.target.value })} type="number" placeholder="Carbs" className="rounded border border-border px-2 py-1" />
+                  <input value={foodForm.fats} onChange={(event) => setFoodForm({ ...foodForm, fats: event.target.value })} type="number" placeholder="Fats" className="rounded border border-border px-2 py-1" />
+                </div>
+                <button onClick={handleAddFood} className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Save Food</button>
+              </div>
+            )}
+            <div className="space-y-2">
+              {dailyLog.foods.length === 0 ? <p className="text-sm text-muted-foreground">No food added today.</p> : dailyLog.foods.map((food) => (
+                <div key={food.id} className="flex items-center justify-between rounded bg-secondary/50 p-3">
+                  <div><p className="font-medium">{food.name}</p><p className="text-xs text-muted-foreground">{food.time}</p></div>
+                  <div className="flex items-center gap-3"><p className="font-semibold">{food.calories} cal</p><button onClick={() => updateLog({ foods: dailyLog.foods.filter((item) => item.id !== food.id) })}><X className="h-4 w-4" /></button></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Exercises</h2>
+              <button onClick={() => setShowExerciseForm((show) => !show)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Add Exercise</button>
+            </div>
+            {showExerciseForm && (
+              <div className="mb-4 space-y-2 rounded-lg border border-border p-3">
+                <input value={exerciseForm.name} onChange={(event) => setExerciseForm({ ...exerciseForm, name: event.target.value })} placeholder="Exercise" className="w-full rounded border border-border px-2 py-1" />
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={exerciseForm.duration} onChange={(event) => setExerciseForm({ ...exerciseForm, duration: event.target.value })} type="number" placeholder="Minutes" className="rounded border border-border px-2 py-1" />
+                  <input value={exerciseForm.caloriesBurned} onChange={(event) => setExerciseForm({ ...exerciseForm, caloriesBurned: event.target.value })} type="number" placeholder="Calories burned" className="rounded border border-border px-2 py-1" />
+                </div>
+                <button onClick={handleAddExercise} className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Save Exercise</button>
+              </div>
+            )}
+            <div className="space-y-2">
+              {dailyLog.exercises.length === 0 ? <p className="text-sm text-muted-foreground">No exercise added today.</p> : dailyLog.exercises.map((exercise) => (
+                <div key={exercise.id} className="flex items-center justify-between rounded bg-secondary/50 p-3">
+                  <div><p className="font-medium">{exercise.name}</p><p className="text-xs text-muted-foreground">{exercise.time} • {exercise.duration} min</p></div>
+                  <div className="flex items-center gap-3"><p className="font-semibold text-green-600">+{exercise.caloriesBurned}</p><button onClick={() => updateLog({ exercises: dailyLog.exercises.filter((item) => item.id !== exercise.id) })}><X className="h-4 w-4" /></button></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="mb-4 text-lg font-semibold">Sleep Tracking</h2>
+            <div className="grid grid-cols-3 gap-2">
+              <input type="number" min="0" max="23" value={dailyLog.sleep.hours} onChange={(event) => updateLog({ sleep: { ...dailyLog.sleep, hours: parseInt(event.target.value) || 0 } })} placeholder="Hours" className="rounded border border-border px-2 py-1" />
+              <input type="number" min="0" max="59" value={dailyLog.sleep.minutes} onChange={(event) => updateLog({ sleep: { ...dailyLog.sleep, minutes: parseInt(event.target.value) || 0 } })} placeholder="Minutes" className="rounded border border-border px-2 py-1" />
+              <select value={dailyLog.sleep.quality} onChange={(event) => updateLog({ sleep: { ...dailyLog.sleep, quality: event.target.value } })} className="rounded border border-border px-2 py-1">
+                <option>Not logged</option><option>Poor</option><option>Fair</option><option>Good</option><option>Excellent</option>
+              </select>
+            </div>
+            <div className="mt-3 rounded-lg bg-secondary/50 p-3 text-sm">
+              <Moon className="mr-2 inline h-4 w-4" /> {dailyLog.sleep.hours}h {dailyLog.sleep.minutes}m • {dailyLog.sleep.quality}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="mb-4 text-lg font-semibold">Evening Mental Health Questionnaire</h2>
+            <p className="mb-3 text-sm text-muted-foreground">Complete this daily check-in to keep your weekly trend data accurate.</p>
+            {[
+              { key: "mood", label: "Mood (1-5)" },
+              { key: "stress", label: "Stress (1-5)" },
+              { key: "energy", label: "Energy (1-5)" },
+              { key: "focus", label: "Focus (1-5)" },
+            ].map((item) => (
+              <label key={item.key} className="mb-2 block text-sm">{item.label}
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  value={dailyLog.questionnaire[item.key as keyof typeof dailyLog.questionnaire] as number}
+                  onChange={(event) =>
+                    updateLog({
+                      questionnaire: {
+                        ...dailyLog.questionnaire,
+                        [item.key]: parseInt(event.target.value),
+                        completed: true,
+                      },
+                    })
+                  }
+                  className="w-full"
+                />
+              </label>
+            ))}
+            <textarea
+              value={dailyLog.questionnaire.notes}
+              onChange={(event) =>
+                updateLog({
+                  questionnaire: {
+                    ...dailyLog.questionnaire,
+                    notes: event.target.value,
+                    completed: true,
+                  },
+                })
+              }
+              placeholder="How did you feel today?"
+              className="mt-2 w-full rounded border border-border px-2 py-2 text-sm"
+            />
+            <div className="mt-4 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={mentalChartData} outerRadius={80}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="subject" />
+                  <Radar dataKey="score" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.5} />
+                  <Tooltip />
+                </RadarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>

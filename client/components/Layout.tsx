@@ -20,7 +20,7 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <BarChart3 className="h-5 w-5" />
             </div>
-            <span className="text-xl font-bold text-foreground">Health Manager</span>
+            <span className="text-xl font-bold text-foreground">AF Health Manager</span>
           </Link>
 
           <nav className="hidden gap-8 md:flex">

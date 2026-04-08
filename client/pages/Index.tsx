@@ -147,7 +147,7 @@ export default function Index() {
         <footer className="border-t border-border bg-secondary/50 py-8">
           <div className="mx-auto max-w-6xl px-6 text-center">
             <p className="text-muted-foreground">
-              Health Manager © 2024. Your complete wellness companion.
+              Arnold Finch Health (AF Health / AFH Incorporated) © 2026. Your complete wellness companion.
             </p>
           </div>
         </footer>

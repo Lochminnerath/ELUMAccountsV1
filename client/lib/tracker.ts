@@ -36,6 +36,7 @@ export interface DailyLog {
   foods: FoodEntry[];
   exercises: ExerciseEntry[];
   sleep: SleepEntry;
+  waterOunces: number;
   questionnaire: MentalQuestionnaire;
   streak: number;
 }
@@ -75,6 +76,7 @@ export function getDefaultDailyLog(date: string = getTodayKey()): DailyLog {
     foods: [],
     exercises: [],
     sleep: { ...defaultSleep },
+    waterOunces: 0,
     questionnaire: { ...defaultQuestionnaire },
     streak: 0,
   };
@@ -107,7 +109,19 @@ export function saveTrackerState(state: TrackerState): void {
 
 export function getDailyLog(date: string = getTodayKey()): DailyLog {
   const state = getTrackerState();
-  return state.logs[date] || getDefaultDailyLog(date);
+  const existingLog = state.logs[date];
+
+  if (!existingLog) {
+    return getDefaultDailyLog(date);
+  }
+
+  return {
+    ...getDefaultDailyLog(date),
+    ...existingLog,
+    sleep: { ...defaultSleep, ...existingLog.sleep },
+    questionnaire: { ...defaultQuestionnaire, ...existingLog.questionnaire },
+    waterOunces: existingLog.waterOunces || 0,
+  };
 }
 
 export function saveDailyLog(log: DailyLog): void {

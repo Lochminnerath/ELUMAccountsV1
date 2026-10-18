@@ -3,7 +3,7 @@ import type { AccountApi } from '../client';
 import { ApiError, toApiError, type RawError } from '../errors';
 import type { Account, Activity, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput } from '../types';
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
-import { cookieStorage } from './cookieStorage';
+import { cookieStorage, usableCookieDomain } from './cookieStorage';
 
 /**
  * ELUM Accounts on the shared ELUM Supabase project. Reads and changes go through the platform's
@@ -22,7 +22,7 @@ export class SupabaseAccountApi implements AccountApi {
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
     this.typeDomain = options.typeDomain ?? 'type.elum.services';
-    const cookieDomain = import.meta.env.VITE_ELUM_COOKIE_DOMAIN?.trim();
+    const cookieDomain = usableCookieDomain(import.meta.env.VITE_ELUM_COOKIE_DOMAIN, location.hostname);
     this.sb =
       options.client ??
       createClient(url, anonKey, {
@@ -52,13 +52,24 @@ export class SupabaseAccountApi implements AccountApi {
   }
 
   async signIn(input: SignInInput): Promise<Session> {
-    const { data, error } = await this.sb.auth.signInWithPassword({ email: loginToEmail(input.login, this.typeDomain), password: input.password });
+    const { data, error } = await this.sb.auth.signInWithPassword({ email: loginToEmail(input.login, input.login.includes('@') ? this.typeDomain : await this.serverDomain()), password: input.password });
     if (error) {
       if (error.code === 'email_not_confirmed') throw new ApiError('confirm_email', 'Confirm your email first. We sent you a link when you signed up.');
       if (error.code === 'invalid_credentials' || error.status === 400) throw new ApiError('invalid_credentials', 'That address and password do not match.');
       throw toApiError(error);
     }
     return this.sessionFor(data.session);
+  }
+
+  private domainLookup: Promise<string> | null = null;
+
+  /** The domain Type addresses live on, from the database, so a handle signs in as the address it was created with. */
+  private serverDomain(): Promise<string> {
+    this.domainLookup ??= Promise.resolve(this.sb.rpc('type_domain')).then(
+      ({ data }) => (typeof data === 'string' && data ? data : this.typeDomain),
+      () => this.typeDomain,
+    );
+    return this.domainLookup;
   }
 
   async signUp(input: SignUpInput): Promise<Session> {

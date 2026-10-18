@@ -1,39 +1,24 @@
-import { defineConfig, Plugin } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "node:path";
-import { createServer } from "./server";
+/// <reference types="vitest/config" />
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    fs: {
-      allow: ["./client", "./shared", "index.html"],
-      deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "server/**"],
-    },
-  },
+export default defineConfig({
+  plugins: [react()],
+  server: { port: 5175 },
   build: {
-    outDir: "dist/spa",
-  },
-  plugins: [react(), expressPlugin()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./client"),
-      "@shared": path.resolve(__dirname, "./shared"),
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (/node_modules\/(react|react-dom|scheduler|react-router)\//.test(id)) return 'react';
+          if (/node_modules\/@supabase\//.test(id)) return 'supabase';
+          return undefined;
+        },
+      },
     },
   },
-}));
-
-function expressPlugin(): Plugin {
-  return {
-    name: "express-plugin",
-    apply: "serve", // Only apply during development (serve mode)
-    configureServer(server) {
-      const app = createServer();
-
-      // Add Express app as middleware to Vite dev server
-      server.middlewares.use(app);
-    },
-  };
-}
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'supabase/functions/_shared/**/*.test.ts'],
+  },
+});

@@ -94,6 +94,12 @@ export class SupabaseAccountApi implements AccountApi {
         throw new ApiError('email_taken', 'An account with this email already exists. Sign in instead.', { field: 'email' });
       }
       if (error.code === 'weak_password') throw new ApiError('invalid', error.message, { field: 'password' });
+      // Supabase keeps the account only once the confirmation email is sent. Its built-in sender
+      // only reaches the project's own team, so without an SMTP sender every other sign-up is dropped.
+      if (/sending.*email|email.*send/i.test(error.message ?? '') || error.code === 'unexpected_failure') {
+        throw new ApiError('server', 'We could not send your confirmation email, so the account was not created. ELUM email is not set up yet (Supabase > Authentication > Emails > SMTP Settings).');
+      }
+      if (error.code === 'signup_disabled') throw new ApiError('forbidden', 'New accounts are switched off right now (Supabase > Authentication > Sign In / Providers).');
       throw toApiError(error);
     }
     if (!data.session) throw new ApiError('confirm_email', `We sent a link to ${email}. Open it to confirm your email, then sign in.`);
@@ -284,6 +290,9 @@ export class SupabaseAccountApi implements AccountApi {
   }
 
   private async sessionFor(_session: AuthSession): Promise<Session> {
+    // An account Supabase Auth knows but the profile trigger missed gets its profile first.
+    // Older databases lack the function; the account then loads as before.
+    await this.sb.rpc('elum_ensure_profile').then(() => undefined, () => undefined);
     return { account: await this.account() };
   }
 }

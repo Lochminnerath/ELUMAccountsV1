@@ -1,4 +1,4 @@
-import { Bell, CircleUser, House, KeyRound, LogOut, Mail, Moon, ShieldCheck, Sun, Trash2, Users, type LucideIcon } from 'lucide-react';
+import { Bell, CircleUser, House, KeyRound, LogOut, Mail, Megaphone, Moon, ShieldCheck, Sun, Trash2, Users, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 import { api } from '../api';
@@ -10,6 +10,7 @@ import { Popover } from '../components/Popover';
 import { APPS } from '../lib/apps';
 import { useTheme } from '../theme/ThemeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { openWhatsNew } from '../whatsnew/WhatsNew';
 import './shell.css';
 
 const SECTIONS: { to: string; label: string; icon: LucideIcon }[] = [
@@ -62,6 +63,7 @@ export function Shell({ children }: { children: ReactNode }) {
             }
             items={[
               { label: theme === 'dark' ? 'Light mode' : 'Dark mode', icon: theme === 'dark' ? <Sun size={16} strokeWidth={1.75} /> : <Moon size={16} strokeWidth={1.75} />, onSelect: toggle },
+              { label: "What's new", icon: <Megaphone size={16} strokeWidth={1.75} />, onSelect: openWhatsNew },
               'separator',
               {
                 label: 'Sign out',
@@ -98,11 +100,6 @@ export function Shell({ children }: { children: ReactNode }) {
       <main id="main" className="shell__main">
         <div className="page">{children}</div>
       </main>
-      {api.mode === 'local' && (
-        <p className="preview-note" role="note">
-          Preview: your account stays in this browser until ELUM is connected.
-        </p>
-      )}
     </div>
   );
 }

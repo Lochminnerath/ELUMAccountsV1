@@ -35,3 +35,9 @@ npm test           # app and edge-function helpers
 npm run test:db    # database access rules, against Postgres (needs psql)
 npm run build
 ```
+
+## What's new
+
+`src/whatsnew/releases.ts` lists what changed, newest first. When an update ships, add a release at
+the top with a new id: everyone sees it once, the next time they open ELUM Account, and can read
+every release again from the account menu (What's new).

@@ -29,8 +29,8 @@ export function AddressesPage() {
     setError(null);
     try {
       await api.startAddress(address);
-      const preview = api instanceof LocalAccountApi ? api.lastCode : null;
-      toast(preview ? `Preview: the code is ${preview.code}` : `We sent a code to ${address}`, { tone: 'success', duration: 9000 });
+      const local = api instanceof LocalAccountApi ? api.lastCode : null;
+      toast(local ? `Not connected to ELUM, so here is the code: ${local.code}` : `We sent a code to ${address}`, { tone: 'success', duration: 9000 });
       setAddress('');
       await refresh();
     } catch (err) {

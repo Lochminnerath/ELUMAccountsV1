@@ -18,6 +18,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SecurityPage } from './pages/SecurityPage';
 import { Shell } from './shell/Shell';
 import { ThemeProvider } from './theme/ThemeProvider';
+import { WhatsNew } from './whatsnew/WhatsNew';
 import { useAuth } from './auth/AuthProvider';
 import { Navigate, useSearchParams } from 'react-router';
 import { FullPageLoader } from './components/Loader';
@@ -71,6 +72,7 @@ export function App() {
             </ErrorBoundary>
           </BrowserRouter>
           <TooltipLayer />
+          <WhatsNew />
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>

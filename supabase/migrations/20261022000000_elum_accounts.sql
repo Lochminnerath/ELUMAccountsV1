@@ -378,6 +378,23 @@ language sql stable security definer set search_path = elum, public as $$
     and not exists (select 1 from elum.deliveries d where d.event_id = e.id and d.status not in ('done', 'skipped'))
 $$;
 
+-- Write's people search (sharing a document) finds only people who let you find them, plus the
+-- people in your circles. A platform change to a Write function, as share_by_email was.
+create or replace function public.search_users(q text)
+returns table (id uuid, name text, email text, color text)
+language sql stable security definer set search_path = public, elum as $$
+  select p.id, p.name, p.email, p.color
+  from public.profiles p
+  where auth.uid() is not null
+    and char_length(btrim(q)) >= 2
+    and p.id <> auth.uid()
+    and p.status = 'active'
+    and (p.name ilike '%' || btrim(q) || '%' or p.email ilike '%' || btrim(q) || '%')
+    and (elum.allows(p.id, auth.uid(), 'find') or elum.circle_of(auth.uid(), p.id) in ('friends', 'family', 'work'))
+  order by (p.name ilike btrim(q) || '%' or p.email ilike btrim(q) || '%') desc, p.name
+  limit 8
+$$;
+
 -- Server only: rate limits for the account edge functions (handoff, address codes).
 create function public.elum_take_rate_limit(p_key text, p_limit integer, p_window_seconds integer) returns boolean
 language sql security definer set search_path = elum, public as $$

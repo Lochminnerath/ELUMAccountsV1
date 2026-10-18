@@ -86,10 +86,12 @@ select expect(not elum.allows(:'ada', :'dee', 'find') and not elum.allows(:'ada'
 select set_config('request.jwt.claims', json_build_object('sub', :'dee')::text, false);
 set role authenticated;
 select expect(jsonb_array_length(elum_find_people('ada')) = 0, 'people Ada does not know cannot find her');
+select expect((select count(*) from search_users('ada')) = 0, 'not even when sharing in Write');
 reset role;
 select set_config('request.jwt.claims', json_build_object('sub', :'cy')::text, false);
 set role authenticated;
 select expect(jsonb_array_length(elum_find_people('ada')) = 1, 'people she knows still can');
+select expect((select count(*) from search_users('ada')) = 1, 'in Write too');
 select expect(jsonb_array_length(elum_people()) = 0, 'circles are private to their owner');
 reset role;
 

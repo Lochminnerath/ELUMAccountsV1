@@ -22,7 +22,7 @@ export class SupabaseAccountApi implements AccountApi {
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
     this.typeDomain = options.typeDomain ?? 'type.elum.services';
-    const cookieDomain = usableCookieDomain(import.meta.env.VITE_ELUM_COOKIE_DOMAIN, location.hostname);
+    const cookieDomain = typeof location === 'undefined' ? null : usableCookieDomain(import.meta.env.VITE_ELUM_COOKIE_DOMAIN, location.hostname);
     this.sb =
       options.client ??
       createClient(url, anonKey, {

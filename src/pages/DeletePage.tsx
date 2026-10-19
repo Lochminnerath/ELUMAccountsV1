@@ -1,4 +1,4 @@
-import { TriangleAlert } from 'lucide-react';
+import { WarningIcon } from '../components/icons/ElumIcons';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage } from '../api';
@@ -40,7 +40,7 @@ export function DeletePage() {
       </header>
       <form className="panel panel--danger" onSubmit={remove}>
         <h2 className="panel__title">
-          <TriangleAlert size={20} strokeWidth={1.75} aria-hidden="true" /> What happens
+          <WarningIcon size={20} strokeWidth={1.75} aria-hidden="true" /> What happens
         </h2>
         <ul className="plain-list">
           <li>Documents you own in Write are deleted. Comments you left elsewhere stay, signed “Former member”.</li>

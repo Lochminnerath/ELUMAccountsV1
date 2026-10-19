@@ -29,6 +29,19 @@ export const APP_NAME = 'ELUM Account';
 
 export const RELEASES: Release[] = [
   {
+    id: '2026-10-19-symbols',
+    date: '19 October 2026',
+    title: 'Symbols, redrawn',
+    intro: 'Every action now has a symbol built from ELUM circles.',
+    features: [
+      {
+        title: 'Symbols drawn from circles',
+        text: 'Archive, delete, send, attach, lock and the rest are now drawn from the rings and discs of the ELUM marks, each with its own colour.',
+        art: 'layers',
+      },
+    ],
+  },
+  {
     id: '2026-10-19',
     date: '19 October 2026',
     title: "A fresh coat for ELUM Account",

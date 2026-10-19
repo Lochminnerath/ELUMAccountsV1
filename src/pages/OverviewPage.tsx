@@ -1,4 +1,5 @@
-import { ArrowRight, BadgeCheck } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { VerifiedIcon } from '../components/icons/ElumIcons';
 import { Link } from 'react-router';
 import { useAccount } from '../auth/AuthProvider';
 import { Avatar } from '../components/Avatar';
@@ -20,7 +21,7 @@ export function OverviewPage() {
           <h1 className="hero__name">{a.name}</h1>
           <p className="hero__address">
             {typeAddress ?? a.email}
-            {typeAddress && <BadgeCheck size={16} strokeWidth={2} aria-label="ELUM address" />}
+            {typeAddress && <VerifiedIcon size={16} strokeWidth={2} aria-label="ELUM address" />}
           </p>
           <p className="muted">One account for Write, Type and every ELUM app.</p>
         </div>

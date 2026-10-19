@@ -1,4 +1,5 @@
-import { Search, UserMinus } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { RemovePersonIcon } from '../components/icons/ElumIcons';
 import { InviteIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useState } from 'react';
 import { api, errorMessage, type Circle, type Person } from '../api';
@@ -76,7 +77,7 @@ export function PeoplePage() {
       placement="bottom-end"
       items={[
         ...CIRCLES.map((c) => ({ label: c.label, hint: c.hint, checked: p.circle === c.id, danger: c.id === 'blocked', onSelect: () => void put(p, c.id) })),
-        ...(p.circle ? ['separator' as const, { label: 'Remove from circles', hint: 'They become Unknown', icon: <UserMinus size={16} strokeWidth={1.75} />, onSelect: () => void put(p, null) }] : []),
+        ...(p.circle ? ['separator' as const, { label: 'Remove from circles', hint: 'They become Unknown', icon: <RemovePersonIcon size={16} strokeWidth={1.75} />, onSelect: () => void put(p, null) }] : []),
       ]}
       trigger={(props) => (
         <button type="button" className={p.circle ? 'chip chip--circle' : 'elum-btn elum-btn--secondary elum-btn--sm'} data-circle={p.circle ?? undefined} {...props}>

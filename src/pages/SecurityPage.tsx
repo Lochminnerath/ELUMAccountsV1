@@ -1,4 +1,5 @@
-import { Eye, EyeOff, Laptop, Smartphone } from 'lucide-react';
+import { Laptop, Smartphone } from 'lucide-react';
+import { HiddenIcon, VisibleIcon } from '../components/icons/ElumIcons';
 import { SignOutIcon } from '../components/icons/ElumIcons';
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, errorMessage, type Activity, type Device, type SecuritySettings } from '../api';
@@ -134,7 +135,7 @@ export function SecurityPage() {
           <div className="password-field">
             <input id="s-new" className="input" type={show ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <button type="button" className="icon-btn password-field__reveal" aria-label={show ? 'Hide password' : 'Show password'} aria-pressed={show} onClick={() => setShow((v) => !v)}>
-              {show ? <EyeOff size={18} strokeWidth={1.75} /> : <Eye size={18} strokeWidth={1.75} />}
+              {show ? <HiddenIcon size={18} strokeWidth={1.75} /> : <VisibleIcon size={18} strokeWidth={1.75} />}
             </button>
           </div>
           <span className="muted panel__hint">At least {MIN_PASSWORD} characters. Other devices stay signed in until you sign them out below.</span>

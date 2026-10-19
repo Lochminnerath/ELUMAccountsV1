@@ -1,4 +1,5 @@
-import { AtSign, BadgeCheck, Plus } from 'lucide-react';
+import { AtSign, Plus } from 'lucide-react';
+import { VerifiedIcon } from '../components/icons/ElumIcons';
 import { DeleteIcon } from '../components/icons/ElumIcons';
 import { useState, type FormEvent } from 'react';
 import { api, errorMessage } from '../api';
@@ -69,7 +70,7 @@ export function AddressesPage() {
                 {a.verified && (
                   <>
                     {' · '}
-                    <BadgeCheck size={14} strokeWidth={2} aria-hidden="true" /> confirmed
+                    <VerifiedIcon size={14} strokeWidth={2} aria-hidden="true" /> confirmed
                   </>
                 )}
               </span>

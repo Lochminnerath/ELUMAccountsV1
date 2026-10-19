@@ -9,7 +9,7 @@ export const APPS = {
   write: { name: 'Write', url: clean(env.VITE_ELUM_WRITE_URL, 'https://elumwrite.netlify.app'), note: 'Documents' },
   type: { name: 'Type', url: clean(env.VITE_ELUM_TYPE_URL, 'https://elumtype.netlify.app'), note: 'Messages and email' },
   browse: { name: 'Browse', url: null, note: 'Coming soon' },
-  make: { name: 'Make', url: null, note: 'Coming soon' },
+  make: { name: 'Make', url: clean(env.VITE_ELUM_MAKE_URL, 'https://elummake.netlify.app'), note: 'Slides and posts' },
   store: { name: 'Store', url: null, note: 'Coming soon' },
 } as const;
 

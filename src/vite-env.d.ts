@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_ELUM_TYPE_DOMAIN?: string;
   readonly VITE_ELUM_WRITE_URL?: string;
   readonly VITE_ELUM_TYPE_URL?: string;
+  readonly VITE_ELUM_MAKE_URL?: string;
 }
 
 interface ImportMeta {

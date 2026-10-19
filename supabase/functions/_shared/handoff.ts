@@ -7,7 +7,14 @@
  */
 
 /** The ELUM apps that may receive a sign-in, as origins. Configured with ELUM_APP_ORIGINS. */
-export const DEFAULT_APP_ORIGINS = ['https://elumwrite.netlify.app', 'https://elumtype.netlify.app', 'https://elumaccounts.netlify.app'];
+export const DEFAULT_APP_ORIGINS = ['https://elumwrite.netlify.app', 'https://elumtype.netlify.app', 'https://elummake.netlify.app', 'https://elumaccounts.netlify.app'];
+
+/** ELUM's own domain: every https site on it is an ELUM app (write.elum.services, ...). */
+export const FAMILY_DOMAIN = 'elum.services';
+
+function isFamilyHost(url: URL): boolean {
+  return url.protocol === 'https:' && (url.hostname === FAMILY_DOMAIN || url.hostname.endsWith(`.${FAMILY_DOMAIN}`));
+}
 
 export function parseOrigins(value: string | undefined): string[] {
   const list = (value ?? '')
@@ -31,7 +38,7 @@ export function handoffTarget(to: string, allowed: string[]): URL | null {
   if (url.username || url.password || url.hash) return null;
   const local = url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname === '127.0.0.1');
   if (url.protocol !== 'https:' && !local) return null;
-  if (!allowed.includes(url.origin)) return null;
+  if (!allowed.includes(url.origin) && !isFamilyHost(url)) return null;
   if (url.pathname !== '/auth/handoff') return null;
   return url;
 }

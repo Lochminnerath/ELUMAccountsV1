@@ -77,6 +77,19 @@ export interface Activity {
   at: string;
 }
 
+export interface SecuritySettings {
+  /** New password sign-ins wait until a signed-in device approves them. */
+  approveSignIns: boolean;
+}
+
+export interface Preferences {
+  timeFormat: 'auto' | '12h' | '24h';
+  weekStart: 'auto' | 'monday' | 'sunday' | 'saturday';
+  /** Where signing in here takes you when no app asked. */
+  startApp: 'account' | 'write' | 'type' | 'make';
+  motion: 'system' | 'reduce' | 'full';
+}
+
 export interface NotificationSetting {
   type: string;
   service: string;

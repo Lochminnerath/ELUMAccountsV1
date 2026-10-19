@@ -1,9 +1,10 @@
 import { createClient, type Session as AuthSession, type SupabaseClient } from '@supabase/supabase-js';
 import type { AccountApi } from '../client';
 import { ApiError, toApiError, type RawError } from '../errors';
-import type { Account, Activity, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput } from '../types';
+import type { Account, Activity, Circle, Device, NotificationSetting, Person, Preferences, Privacy, ProfileChange, SecuritySettings, Session, SignInInput, SignUpInput } from '../types';
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
 import { cookieStorage, usableCookieDomain } from './cookieStorage';
+import { PENDING_ROLE, tokenRole } from '../../security/approvals';
 
 /**
  * ELUM Accounts on the shared ELUM Supabase project. Reads and changes go through the platform's
@@ -212,6 +213,31 @@ export class SupabaseAccountApi implements AccountApi {
     if (error) throw toApiError(error);
   }
 
+  async signOutDevice(id: string): Promise<void> {
+    await this.rpc<null>('elum_sign_out_device', { p_session: id });
+  }
+
+  async security(): Promise<SecuritySettings> {
+    return this.rpc<SecuritySettings>('elum_security');
+  }
+
+  async setSignInApprovals(on: boolean): Promise<SecuritySettings> {
+    return this.rpc<SecuritySettings>('elum_set_sign_in_approvals', { p_on: on });
+  }
+
+  async preferences(): Promise<Preferences> {
+    return this.rpc<Preferences>('elum_preferences');
+  }
+
+  async setPreferences(change: Partial<Preferences>): Promise<Preferences> {
+    return this.rpc<Preferences>('elum_set_preferences', {
+      p_time_format: change.timeFormat ?? null,
+      p_week_start: change.weekStart ?? null,
+      p_start_app: change.startApp ?? null,
+      p_motion: change.motion ?? null,
+    });
+  }
+
   async activity(): Promise<Activity[]> {
     return this.rpc<Activity[]>('elum_activity', { p_limit: 30 });
   }
@@ -289,7 +315,11 @@ export class SupabaseAccountApi implements AccountApi {
     };
   }
 
-  private async sessionFor(_session: AuthSession): Promise<Session> {
+  private async sessionFor(session: AuthSession): Promise<Session> {
+    // Waiting for approval from another device (ELUM Account > Security): nothing else answers it.
+    if (tokenRole(session.access_token) === PENDING_ROLE) {
+      throw new ApiError('approval_required', 'Approve this sign-in on a device you are already signed in to.');
+    }
     // An account Supabase Auth knows but the profile trigger missed gets its profile first.
     // Older databases lack the function; the account then loads as before.
     await this.sb.rpc('elum_ensure_profile').then(() => undefined, () => undefined);

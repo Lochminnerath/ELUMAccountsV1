@@ -1,6 +1,7 @@
-import { Eye, EyeOff, Laptop, LogOut, Smartphone } from 'lucide-react';
+import { Eye, EyeOff, Laptop, Smartphone } from 'lucide-react';
+import { SignOutIcon } from '../components/icons/ElumIcons';
 import { useEffect, useState, type FormEvent } from 'react';
-import { api, errorMessage, type Activity, type Device } from '../api';
+import { api, errorMessage, type Activity, type Device, type SecuritySettings } from '../api';
 import { MIN_PASSWORD } from '../api/validation';
 import { Loader } from '../components/Loader';
 import { useToast } from '../components/Toast';
@@ -17,6 +18,11 @@ const ACTIONS: Record<string, string> = {
   'address.removed': 'Address removed',
   'password.changed': 'Password changed',
   'sessions.revoked': 'Signed out of other devices',
+  'sessions.revoked_one': 'Signed out of a device',
+  'security.approvals_on': 'Sign-in approvals turned on',
+  'security.approvals_off': 'Sign-in approvals turned off',
+  'security.sign_in_approved': 'New sign-in approved',
+  'security.sign_in_denied': 'New sign-in stopped',
 };
 
 /** A readable name for a browser's user agent: "Firefox on Linux", "Safari on iPhone". */
@@ -36,10 +42,12 @@ export function SecurityPage() {
   const [error, setError] = useState<string | null>(null);
   const [devices, setDevices] = useState<Device[] | null>(null);
   const [activity, setActivity] = useState<Activity[] | null>(null);
+  const [security, setSecurity] = useState<SecuritySettings | null>(null);
 
   const load = () => {
     api.devices().then(setDevices, () => setDevices([]));
     api.activity().then(setActivity, () => setActivity([]));
+    api.security().then(setSecurity, () => setSecurity(null));
   };
   useEffect(load, []);
 
@@ -59,12 +67,65 @@ export function SecurityPage() {
     }
   };
 
+  const setApprovals = async (on: boolean) => {
+    try {
+      setSecurity(await api.setSignInApprovals(on));
+      toast(on ? 'New sign-ins now wait for your approval' : 'New sign-ins no longer need approval', { tone: 'success' });
+      load();
+    } catch (e) {
+      toast(errorMessage(e), { tone: 'error' });
+    }
+  };
+
+  const signOutDevice = async (d: Device) => {
+    try {
+      await api.signOutDevice(d.id);
+      toast(`${deviceName(d.userAgent)} is signed out`, { tone: 'success' });
+      load();
+    } catch (e) {
+      toast(errorMessage(e), { tone: 'error' });
+    }
+  };
+
   return (
     <>
       <header className="page__head">
         <h1 className="page__title">Security</h1>
         <p className="muted">Keep your account yours.</p>
       </header>
+
+      <section className="panel security-approvals" aria-labelledby="s-approve">
+        <div className="security-approvals__row">
+          <span className="security-approvals__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+              <path d="M12 3l7 3v5.5c0 4.2-2.9 7.6-7 9.5-4.1-1.9-7-5.3-7-9.5V6l7-3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M8.8 11.8l2.2 2.2 4.2-4.4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          <div className="security-approvals__text">
+            <h2 id="s-approve" className="panel__title">Approve new sign-ins</h2>
+            <p className="muted panel__hint">
+              When someone signs in with your password on a new device, they get nothing until you approve it from a device that is already signed in. ELUM Type, this
+              page and every ELUM app ask “Is this you signing in?”, and you pick the number the new device shows. A wrong number or “No, it's not me” signs them out.
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            className="switch"
+            role="switch"
+            aria-labelledby="s-approve"
+            checked={!!security?.approveSignIns}
+            disabled={!security}
+            onChange={(e) => void setApprovals(e.target.checked)}
+          />
+        </div>
+        {security?.approveSignIns && (
+          <p className="security-approvals__note">
+            The devices below are trusted. Sign out any you do not recognise. Lost every device? “Forgot password” on the sign-in page still gets you in: the email
+            link counts as approval.
+          </p>
+        )}
+      </section>
 
       <form className="panel" aria-labelledby="s-pass" onSubmit={change}>
         <h2 id="s-pass" className="panel__title">Change your password</h2>
@@ -106,6 +167,11 @@ export function SecurityPage() {
                     {d.ip ? ` · ${d.ip}` : ''}
                   </span>
                 </span>
+                {!d.current && (
+                  <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm device-row__out" onClick={() => void signOutDevice(d)}>
+                    Sign out
+                  </button>
+                )}
               </li>
             ))}
           </ul>
@@ -124,7 +190,7 @@ export function SecurityPage() {
               )
             }
           >
-            <LogOut size={18} strokeWidth={1.75} />
+            <SignOutIcon size={18} strokeWidth={1.75} />
             Sign out every other device
           </button>
         </div>

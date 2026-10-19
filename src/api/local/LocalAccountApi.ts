@@ -1,8 +1,10 @@
 import type { AccountApi } from '../client';
 import { ApiError } from '../errors';
-import type { Account, AccountAddress, Activity, Audience, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput } from '../types';
+import type { Account, AccountAddress, Activity, Audience, Circle, Device, NotificationSetting, Person, Preferences, Privacy, ProfileChange, SecuritySettings, Session, SignInInput, SignUpInput } from '../types';
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
 import { DEFAULT_ITERATIONS, hashPassword, verifyPassword, type PasswordHash } from './passwords';
+
+const DEFAULT_PREFERENCES: Preferences = { timeFormat: 'auto', weekStart: 'auto', startApp: 'account', motion: 'system' };
 
 /**
  * ELUM Accounts inside this browser, for previews. It keeps the platform's rules (who may see a
@@ -363,6 +365,46 @@ export class LocalAccountApi implements AccountApi {
 
   async signOutOtherDevices(): Promise<void> {
     this.change((_db, me) => this.log(me, 'sessions.revoked'));
+  }
+
+  async signOutDevice(): Promise<void> {
+    throw new ApiError('not_found', 'That device is already signed out.');
+  }
+
+  async security(): Promise<SecuritySettings> {
+    return { approveSignIns: this.extra().approveSignIns ?? false };
+  }
+
+  async setSignInApprovals(on: boolean): Promise<SecuritySettings> {
+    this.saveExtra({ approveSignIns: on });
+    return this.security();
+  }
+
+  async preferences(): Promise<Preferences> {
+    return { ...DEFAULT_PREFERENCES, ...this.extra().preferences };
+  }
+
+  async setPreferences(change: Partial<Preferences>): Promise<Preferences> {
+    const next = { ...(await this.preferences()), ...change };
+    this.saveExtra({ preferences: next });
+    return next;
+  }
+
+  /** Settings kept beside the account in this browser (browser-only mode). */
+  private extra(): { approveSignIns?: boolean; preferences?: Partial<Preferences> } {
+    try {
+      return JSON.parse(localStorage.getItem('elum.account.local.settings') ?? '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  private saveExtra(change: { approveSignIns?: boolean; preferences?: Preferences }) {
+    try {
+      localStorage.setItem('elum.account.local.settings', JSON.stringify({ ...this.extra(), ...change }));
+    } catch {
+      // Without storage the setting lasts until the page closes.
+    }
   }
 
   async activity(): Promise<Activity[]> {

@@ -1,4 +1,5 @@
-import { Camera, Check, Trash2 } from 'lucide-react';
+import { Camera, Check } from 'lucide-react';
+import { DeleteIcon } from '../components/icons/ElumIcons';
 import { useRef, useState, type FormEvent } from 'react';
 import { api, errorMessage } from '../api';
 import { useAccount, useAuth } from '../auth/AuthProvider';
@@ -100,7 +101,7 @@ export function ProfilePage() {
                 disabled={!!busy}
                 onClick={() => api.removePicture().then(setAccount, (e) => setError(errorMessage(e)))}
               >
-                <Trash2 size={18} strokeWidth={1.75} />
+                <DeleteIcon size={18} strokeWidth={1.75} />
                 Remove
               </button>
             )}

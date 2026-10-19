@@ -1,4 +1,11 @@
 const MINUTE = 60_000;
+
+/** 12 or 24 hour clock from Preferences; undefined follows the language. */
+let hour12: boolean | undefined;
+export function setTimeFormat(format: 'auto' | '12h' | '24h') {
+  hour12 = format === 'auto' ? undefined : format === '12h';
+}
+
 const HOUR = 60 * MINUTE;
 
 function sameDay(a: Date, b: Date) {
@@ -11,7 +18,7 @@ export function formatWhen(iso: string, now = new Date()): string {
   const diff = now.getTime() - date.getTime();
   if (diff >= 0 && diff < MINUTE) return 'Just now';
   if (diff >= 0 && diff < HOUR) return `${Math.floor(diff / MINUTE)} min ago`;
-  if (sameDay(date, now)) return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  if (sameDay(date, now)) return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12 });
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   if (sameDay(date, yesterday)) return 'Yesterday';
@@ -22,7 +29,7 @@ export function formatWhen(iso: string, now = new Date()): string {
 
 /** Full date and time for tooltips. */
 export function formatFull(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short', hour12 });
 }
 
 /** For use mid-sentence: "Edited just now", "Opened yesterday". */

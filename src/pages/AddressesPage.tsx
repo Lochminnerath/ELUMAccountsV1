@@ -1,4 +1,5 @@
-import { AtSign, BadgeCheck, Plus, Trash2 } from 'lucide-react';
+import { AtSign, BadgeCheck, Plus } from 'lucide-react';
+import { DeleteIcon } from '../components/icons/ElumIcons';
 import { useState, type FormEvent } from 'react';
 import { api, errorMessage } from '../api';
 import { LocalAccountApi } from '../api/local/LocalAccountApi';
@@ -86,7 +87,7 @@ export function AddressesPage() {
                   )
                 }
               >
-                <Trash2 size={18} strokeWidth={1.75} />
+                <DeleteIcon size={18} strokeWidth={1.75} />
               </button>
             )}
           </li>

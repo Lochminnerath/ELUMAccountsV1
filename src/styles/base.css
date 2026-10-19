@@ -393,3 +393,12 @@ img {
     animation-duration: 0ms !important;
   }
 }
+
+/* Preferences > Motion: Less motion stops animations whatever the device says. */
+[data-motion='reduce'] *,
+[data-motion='reduce'] *::before,
+[data-motion='reduce'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

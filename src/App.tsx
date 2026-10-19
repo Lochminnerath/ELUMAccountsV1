@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { api } from './api';
+import { applyPreferences } from './lib/preferences';
 import { BrowserRouter, Link, Route, Routes } from 'react-router';
 import { AuthProvider } from './auth/AuthProvider';
 import { RequireAuth } from './auth/guards';
@@ -13,12 +16,14 @@ import { GoPage } from './pages/GoPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { PeoplePage } from './pages/PeoplePage';
+import { PreferencesPage } from './pages/PreferencesPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SecurityPage } from './pages/SecurityPage';
 import { Shell } from './shell/Shell';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { WhatsNew } from './whatsnew/WhatsNew';
+import { SecurityLayer } from './security/SecurityLayer';
 import { useAuth } from './auth/AuthProvider';
 import { Navigate, useSearchParams } from 'react-router';
 import { FullPageLoader } from './components/Loader';
@@ -40,9 +45,31 @@ function SignedOutOnly({ children }: { children: React.ReactNode }) {
   if (status === 'signed-in') {
     const to = params.get('to');
     if (to) return <Navigate to={`/continue?${params.toString()}`} replace />;
-    return <Navigate to={safeLocalPath(params.get('next'))} replace />;
+    if (params.get('next')) return <Navigate to={safeLocalPath(params.get('next'))} replace />;
+    return <StartApp />;
   }
   return <>{children}</>;
+}
+
+/** Signed in with nowhere asked for: Preferences > Open after signing in. */
+function StartApp() {
+  const [to, setTo] = useState<string | null>(null);
+  useEffect(() => {
+    api.preferences().then(
+      (p) => setTo(p.startApp === 'account' ? '/' : `/go/${p.startApp}`),
+      () => setTo('/'),
+    );
+  }, []);
+  return to ? <Navigate to={to} replace /> : <FullPageLoader label="Opening" />;
+}
+
+/** Puts the saved clock and motion preferences into effect once signed in. */
+function PreferencesSync() {
+  const { status } = useAuth();
+  useEffect(() => {
+    if (status === 'signed-in') api.preferences().then(applyPreferences, () => undefined);
+  }, [status]);
+  return null;
 }
 
 export function App() {
@@ -65,6 +92,7 @@ export function App() {
                 <Route path="/privacy" element={<Page><PrivacyPage /></Page>} />
                 <Route path="/addresses" element={<Page><AddressesPage /></Page>} />
                 <Route path="/security" element={<Page><SecurityPage /></Page>} />
+                <Route path="/preferences" element={<Page><PreferencesPage /></Page>} />
                 <Route path="/notifications" element={<Page><NotificationsPage /></Page>} />
                 <Route path="/delete" element={<Page><DeletePage /></Page>} />
                 <Route path="*" element={<NotFound />} />
@@ -73,6 +101,8 @@ export function App() {
           </BrowserRouter>
           <TooltipLayer />
           <WhatsNew />
+          <SecurityLayer />
+          <PreferencesSync />
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>

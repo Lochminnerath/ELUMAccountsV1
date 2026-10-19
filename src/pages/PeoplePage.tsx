@@ -1,4 +1,5 @@
-import { Search, UserMinus, UserPlus } from 'lucide-react';
+import { Search, UserMinus } from 'lucide-react';
+import { InviteIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useState } from 'react';
 import { api, errorMessage, type Circle, type Person } from '../api';
 import { useAuth } from '../auth/AuthProvider';
@@ -81,7 +82,7 @@ export function PeoplePage() {
         <button type="button" className={p.circle ? 'chip chip--circle' : 'elum-btn elum-btn--secondary elum-btn--sm'} data-circle={p.circle ?? undefined} {...props}>
           {p.circle ? CIRCLES.find((c) => c.id === p.circle)!.label : (
             <>
-              <UserPlus size={16} strokeWidth={1.75} /> Add
+              <InviteIcon size={16} strokeWidth={1.75} /> Add
             </>
           )}
         </button>

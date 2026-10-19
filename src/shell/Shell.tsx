@@ -1,4 +1,6 @@
-import { Bell, CircleUser, House, KeyRound, LogOut, Mail, Megaphone, Moon, ShieldCheck, Sun, Trash2, Users, type LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { Bell, SlidersHorizontal, CircleUser, House, KeyRound, Mail, Megaphone, Moon, ShieldCheck, Sun, Users } from 'lucide-react';
+import { DeleteIcon, SignOutIcon } from '../components/icons/ElumIcons';
 import type { ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 import { api } from '../api';
@@ -12,15 +14,16 @@ import { openWhatsNew } from '../whatsnew/WhatsNew';
 import './shell.css';
 import { ElumLauncher } from '../components/ElumLauncher';
 
-const SECTIONS: { to: string; label: string; icon: LucideIcon }[] = [
+const SECTIONS: { to: string; label: string; icon: ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
   { to: '/', label: 'Overview', icon: House },
   { to: '/profile', label: 'Profile', icon: CircleUser },
   { to: '/people', label: 'People', icon: Users },
   { to: '/privacy', label: 'Privacy', icon: ShieldCheck },
   { to: '/addresses', label: 'Addresses', icon: Mail },
   { to: '/security', label: 'Security', icon: KeyRound },
+  { to: '/preferences', label: 'Preferences', icon: SlidersHorizontal },
   { to: '/notifications', label: 'Notifications', icon: Bell },
-  { to: '/delete', label: 'Delete account', icon: Trash2 },
+  { to: '/delete', label: 'Delete account', icon: DeleteIcon },
 ];
 
 /** The frame of every account page: app bar, section list, and the page (handoff 3.8). */
@@ -67,7 +70,7 @@ export function Shell({ children }: { children: ReactNode }) {
               {
                 label: 'Sign out',
                 hint: api.mode === 'remote' ? 'On this device' : undefined,
-                icon: <LogOut size={16} strokeWidth={1.75} />,
+                icon: <SignOutIcon size={16} strokeWidth={1.75} />,
                 onSelect: async () => {
                   await signOut();
                   navigate('/signin', { replace: true });

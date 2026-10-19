@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { api, type Account, type SignInInput, type SignUpInput } from '../api';
+import { api, isApiError, type Account, type SignInInput, type SignUpInput } from '../api';
 
-type Status = 'loading' | 'signed-in' | 'signed-out';
+/** 'approval': signed in with a password, waiting for another device to approve (Security). */
+type Status = 'loading' | 'signed-in' | 'signed-out' | 'approval';
 
 interface AuthContextValue {
   status: Status;
@@ -25,9 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const session = await api.restoreSession();
       setAccountState(session?.account ?? null);
       setStatus(session ? 'signed-in' : 'signed-out');
-    } catch {
+    } catch (e) {
       setAccountState(null);
-      setStatus('signed-out');
+      setStatus(isApiError(e, 'approval_required') ? 'approval' : 'signed-out');
     }
   }, []);
 
@@ -41,7 +42,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [restore]);
 
   const signIn = useCallback(async (input: SignInInput) => {
-    const s = await api.signIn(input);
+    const s = await api.signIn(input).catch((e: unknown) => {
+      if (isApiError(e, 'approval_required')) setStatus('approval');
+      throw e;
+    });
     setAccountState(s.account);
     setStatus('signed-in');
     return s.account;

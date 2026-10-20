@@ -9,6 +9,9 @@ import { appFor } from '../lib/apps';
 /**
  * /continue?to=<app>/auth/handoff&next=<path>: an ELUM app with no session sends people here.
  * Signed in already, they go straight back, signed in there too. Otherwise they sign in first.
+ *
+ * With quiet=1 the app is only asking: signed out here (or waiting for approval), they go straight
+ * back as they were, with #quiet=none, and never see a sign-in page.
  */
 export function ContinuePage() {
   const [params] = useSearchParams();
@@ -17,10 +20,15 @@ export function ContinuePage() {
   const to = params.get('to') ?? '';
   const next = params.get('next') ?? '/';
   const app = appFor(to);
+  const quiet = params.get('quiet') === '1';
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
+    if (quiet && status !== 'signed-in') {
+      window.location.replace(quietAnswer(to, next));
+      return;
+    }
     if (status === 'signed-out') {
       navigate(`/signin?${new URLSearchParams({ to, next }).toString()}`, { replace: true });
       return;
@@ -29,7 +37,7 @@ export function ContinuePage() {
       (url) => window.location.replace(url),
       (e) => setError(errorMessage(e)),
     );
-  }, [status, to, next, navigate]);
+  }, [status, to, next, quiet, navigate]);
 
   if (!error) return <FullPageLoader label={app ? `Signing you in to ${app.name}` : 'Signing you in'} />;
   return (
@@ -42,6 +50,22 @@ export function ContinuePage() {
       </Link>
     </div>
   );
+}
+
+/**
+ * Where a quiet check goes back to when the person is not signed in: the ELUM app's own handoff
+ * page, saying so (#quiet=none). Anything that is not an ELUM app's handoff page stays here.
+ */
+export function quietAnswer(to: string, next: string): string {
+  try {
+    const url = new URL(to);
+    if (appFor(to) && url.pathname === '/auth/handoff' && !url.username && !url.password) {
+      return `${url.origin}/auth/handoff#${new URLSearchParams({ quiet: 'none', next }).toString()}`;
+    }
+  } catch {
+    // Not an address.
+  }
+  return '/';
 }
 
 /**

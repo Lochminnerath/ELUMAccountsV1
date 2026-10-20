@@ -31,15 +31,6 @@ them back signed in:
 It works the other way too: "Your ELUM account" in Write or Type, the app switcher, and Type's
 "Open in Write" cards all go through the same handoff, so every jump lands signed in.
 
-### Without a click: the quiet check
-
-Pages that work signed out (Browse's search, Store) do not send people to sign in. Instead, the
-first time a tab finds itself signed out, the app asks Accounts quietly
-(`/continue?…&quiet=1`). Signed in to Accounts, the person comes back signed in, on the same
-page. Not signed in, Accounts sends them straight back with `#quiet=none` and never shows a
-sign-in page; the app then waits half an hour before asking again, and signing out pauses it too,
-so it never signs anyone back in against their will. Apps never run it inside a frame.
-
 ### Apps inside Browse tabs
 
 An app in a Browse tab is a frame, and browsers keep a frame's storage apart from the same site
@@ -74,5 +65,7 @@ fully shared without any handoff.
    the netlify.app defaults (Write, Type, Make, Browse, Store and Accounts).
 2. In every app (Write, Type, Accounts) set the same `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 3. Every app signs in through `https://elumaccounts.netlify.app` unless its `VITE_ELUM_ACCOUNT_URL`
-   names another ELUM Account. Set it to `off` for an app's own sign-in pages only.
+   names another ELUM Account. Set it to `off` for an app's own sign-in pages only. Away from the
+   apps' own sites (Netlify deploy previews, for example) the apps always use their own sign-in
+   pages, because `account-handoff` only sends sign-ins to the sites it knows.
 4. Supabase, Authentication, URL configuration: add every app's address to Redirect URLs.

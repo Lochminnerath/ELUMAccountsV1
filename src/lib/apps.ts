@@ -10,7 +10,7 @@ export const APPS = {
   type: { name: 'Type', url: clean(env.VITE_ELUM_TYPE_URL, 'https://elumtype.netlify.app'), note: 'Messages and email' },
   browse: { name: 'Browse', url: clean(env.VITE_ELUM_BROWSE_URL, 'https://elumbrowse.netlify.app'), note: 'Search the web' },
   make: { name: 'Make', url: clean(env.VITE_ELUM_MAKE_URL, 'https://elummake.netlify.app'), note: 'Slides and posts' },
-  store: { name: 'Store', url: null, note: 'Coming soon' },
+  store: { name: 'Store', url: clean(env.VITE_ELUM_STORE_URL, 'https://elumstore.netlify.app'), note: 'Apps and more' },
 } as const;
 
 export type AppId = keyof typeof APPS;

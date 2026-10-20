@@ -9,7 +9,7 @@ const LAUNCHER_APPS: LauncherApp[] = [
   { id: 'make', name: 'Make', note: 'Slides and posts', url: APPS.make.url, color: '#ec7fa9' },
   { id: 'account', name: 'Account', note: 'You, everywhere', url: '/', color: '#94c858' },
   { id: 'browse', name: 'Browse', note: 'Search', url: APPS.browse.url, color: '#9b84ee' },
-  { id: 'store', name: 'Store', note: 'Apps and more', url: null, color: '#e9b949' },
+  { id: 'store', name: 'Store', note: 'Apps and more', url: APPS.store.url, color: '#e9b949' },
 ];
 
 export function ElumLauncher() {

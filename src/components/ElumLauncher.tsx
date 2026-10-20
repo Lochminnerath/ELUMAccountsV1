@@ -8,7 +8,7 @@ const LAUNCHER_APPS: LauncherApp[] = [
   { id: 'type', name: 'Type', note: 'Mail', url: APPS.type.url, color: '#3fc4a0' },
   { id: 'make', name: 'Make', note: 'Slides and posts', url: APPS.make.url, color: '#ec7fa9' },
   { id: 'account', name: 'Account', note: 'You, everywhere', url: '/', color: '#94c858' },
-  { id: 'browse', name: 'Browse', note: 'Search', url: null, color: '#9b84ee' },
+  { id: 'browse', name: 'Browse', note: 'Search', url: APPS.browse.url, color: '#9b84ee' },
   { id: 'store', name: 'Store', note: 'Apps and more', url: null, color: '#e9b949' },
 ];
 

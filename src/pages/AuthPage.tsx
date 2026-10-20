@@ -101,7 +101,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
           <span className="auth__lens" />
         </div>
         <div className="auth__art-copy">
-          <p className="label muted">Built by people. Runs without AI.</p>
+          <p className="label muted">Made by you. Runs without AI.</p>
           <p className="auth__tagline">One account for everything you make with ELUM.</p>
         </div>
       </aside>

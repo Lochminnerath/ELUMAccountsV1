@@ -86,7 +86,7 @@ export interface Preferences {
   timeFormat: 'auto' | '12h' | '24h';
   weekStart: 'auto' | 'monday' | 'sunday' | 'saturday';
   /** Where signing in here takes you when no app asked. */
-  startApp: 'account' | 'write' | 'type' | 'make';
+  startApp: 'account' | 'write' | 'type' | 'make' | 'browse';
   motion: 'system' | 'reduce' | 'full';
 }
 

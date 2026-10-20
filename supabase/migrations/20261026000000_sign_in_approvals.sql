@@ -30,7 +30,7 @@ create table elum.preferences (
   account_id uuid primary key references public.profiles (id) on delete cascade,
   time_format text not null default 'auto' check (time_format in ('auto', '12h', '24h')),
   week_start text not null default 'auto' check (week_start in ('auto', 'monday', 'sunday', 'saturday')),
-  start_app text not null default 'account' check (start_app in ('account', 'write', 'type', 'make')),
+  start_app text not null default 'account' check (start_app in ('account', 'write', 'type', 'make', 'browse')),
   motion text not null default 'system' check (motion in ('system', 'reduce', 'full')),
   updated_at timestamptz not null default now()
 );

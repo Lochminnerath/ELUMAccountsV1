@@ -17,6 +17,7 @@ const START: Choice<'startApp'>[] = [
   { value: 'write', label: 'Write' },
   { value: 'type', label: 'Type' },
   { value: 'make', label: 'Make' },
+  { value: 'browse', label: 'Browse' },
 ];
 const MOTION: Choice<'motion'>[] = [
   { value: 'system', label: 'Like my device' },

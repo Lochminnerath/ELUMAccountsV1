@@ -29,6 +29,16 @@ export const APP_NAME = 'ELUM Account';
 
 export const RELEASES: Release[] = [
   {
+    id: '2026-10-20-ring',
+    date: '20 October 2026',
+    title: 'Your apps, in colour',
+    intro: 'Your picture now wears a ring of ELUM colours, one for each app in your account.',
+    features: [
+      { title: 'A ring of your apps', text: 'Write, Type, Make, Browse and Store each light up their colour around your picture once they are in your account.', art: 'mark' },
+      { title: 'Fill it in Store', text: 'Get an app in ELUM Store and its colour joins the ring. Store is open from the apps window.', art: 'spark' },
+    ],
+  },
+  {
     id: '2026-10-19-symbols',
     date: '19 October 2026',
     title: 'Symbols, redrawn',

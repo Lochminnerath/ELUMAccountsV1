@@ -481,9 +481,9 @@ export class LocalAccountApi implements AccountApi {
       services: [
         { id: 'write', name: 'Write', status: 'active', joined: u.joined.includes('write'), plan: 'free', lastSeenAt: null },
         { id: 'type', name: 'Type', status: 'beta', joined: u.joined.includes('type'), plan: 'free', lastSeenAt: null },
-        { id: 'browse', name: 'Browse', status: 'planned', joined: false, plan: null, lastSeenAt: null },
-        { id: 'make', name: 'Make', status: 'planned', joined: false, plan: null, lastSeenAt: null },
-        { id: 'store', name: 'Store', status: 'planned', joined: false, plan: null, lastSeenAt: null },
+        { id: 'browse', name: 'Browse', status: 'beta', joined: u.joined.includes('browse'), plan: 'free', lastSeenAt: null },
+        { id: 'make', name: 'Make', status: 'beta', joined: u.joined.includes('make'), plan: 'free', lastSeenAt: null },
+        { id: 'store', name: 'Store', status: 'beta', joined: u.joined.includes('store'), plan: 'free', lastSeenAt: null },
       ],
       unread: 0,
       picture: u.picture,

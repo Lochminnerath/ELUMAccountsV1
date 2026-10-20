@@ -1,0 +1,39 @@
+.app-ring {
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+}
+.app-ring__svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.app-ring__arc {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-linecap: round;
+}
+.app-ring__arc.is-on {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: app-ring-draw 720ms var(--ease, ease-out) forwards;
+  filter: drop-shadow(0 2px 6px rgba(20, 26, 46, 0.18));
+}
+.app-ring__picture {
+  position: relative;
+  display: inline-grid;
+}
+
+@keyframes app-ring-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-ring__arc.is-on {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

@@ -1,9 +1,10 @@
 import { createClient, type Session as AuthSession, type SupabaseClient } from '@supabase/supabase-js';
 import type { AccountApi } from '../client';
 import { ApiError, toApiError, type RawError } from '../errors';
-import type { Account, Activity, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput } from '../types';
+import type { Account, Activity, Circle, Device, NotificationSetting, Person, Preferences, Privacy, ProfileChange, SecuritySettings, Session, SignInInput, SignUpInput } from '../types';
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
-import { cookieStorage } from './cookieStorage';
+import { cookieStorage, usableCookieDomain } from './cookieStorage';
+import { PENDING_ROLE, tokenRole } from '../../security/approvals';
 
 /**
  * ELUM Accounts on the shared ELUM Supabase project. Reads and changes go through the platform's
@@ -22,7 +23,7 @@ export class SupabaseAccountApi implements AccountApi {
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
     this.typeDomain = options.typeDomain ?? 'type.elum.services';
-    const cookieDomain = import.meta.env.VITE_ELUM_COOKIE_DOMAIN?.trim();
+    const cookieDomain = typeof location === 'undefined' ? null : usableCookieDomain(import.meta.env.VITE_ELUM_COOKIE_DOMAIN, location.hostname);
     this.sb =
       options.client ??
       createClient(url, anonKey, {
@@ -52,13 +53,24 @@ export class SupabaseAccountApi implements AccountApi {
   }
 
   async signIn(input: SignInInput): Promise<Session> {
-    const { data, error } = await this.sb.auth.signInWithPassword({ email: loginToEmail(input.login, this.typeDomain), password: input.password });
+    const { data, error } = await this.sb.auth.signInWithPassword({ email: loginToEmail(input.login, input.login.includes('@') ? this.typeDomain : await this.serverDomain()), password: input.password });
     if (error) {
       if (error.code === 'email_not_confirmed') throw new ApiError('confirm_email', 'Confirm your email first. We sent you a link when you signed up.');
       if (error.code === 'invalid_credentials' || error.status === 400) throw new ApiError('invalid_credentials', 'That address and password do not match.');
       throw toApiError(error);
     }
     return this.sessionFor(data.session);
+  }
+
+  private domainLookup: Promise<string> | null = null;
+
+  /** The domain Type addresses live on, from the database, so a handle signs in as the address it was created with. */
+  private serverDomain(): Promise<string> {
+    this.domainLookup ??= Promise.resolve(this.sb.rpc('type_domain')).then(
+      ({ data }) => (typeof data === 'string' && data ? data : this.typeDomain),
+      () => this.typeDomain,
+    );
+    return this.domainLookup;
   }
 
   async signUp(input: SignUpInput): Promise<Session> {
@@ -83,6 +95,12 @@ export class SupabaseAccountApi implements AccountApi {
         throw new ApiError('email_taken', 'An account with this email already exists. Sign in instead.', { field: 'email' });
       }
       if (error.code === 'weak_password') throw new ApiError('invalid', error.message, { field: 'password' });
+      // Supabase keeps the account only once the confirmation email is sent. Its built-in sender
+      // only reaches the project's own team, so without an SMTP sender every other sign-up is dropped.
+      if (/sending.*email|email.*send/i.test(error.message ?? '') || error.code === 'unexpected_failure') {
+        throw new ApiError('server', 'We could not send your confirmation email, so the account was not created. ELUM email is not set up yet (Supabase > Authentication > Emails > SMTP Settings).');
+      }
+      if (error.code === 'signup_disabled') throw new ApiError('forbidden', 'New accounts are switched off right now (Supabase > Authentication > Sign In / Providers).');
       throw toApiError(error);
     }
     if (!data.session) throw new ApiError('confirm_email', `We sent a link to ${email}. Open it to confirm your email, then sign in.`);
@@ -195,6 +213,31 @@ export class SupabaseAccountApi implements AccountApi {
     if (error) throw toApiError(error);
   }
 
+  async signOutDevice(id: string): Promise<void> {
+    await this.rpc<null>('elum_sign_out_device', { p_session: id });
+  }
+
+  async security(): Promise<SecuritySettings> {
+    return this.rpc<SecuritySettings>('elum_security');
+  }
+
+  async setSignInApprovals(on: boolean): Promise<SecuritySettings> {
+    return this.rpc<SecuritySettings>('elum_set_sign_in_approvals', { p_on: on });
+  }
+
+  async preferences(): Promise<Preferences> {
+    return this.rpc<Preferences>('elum_preferences');
+  }
+
+  async setPreferences(change: Partial<Preferences>): Promise<Preferences> {
+    return this.rpc<Preferences>('elum_set_preferences', {
+      p_time_format: change.timeFormat ?? null,
+      p_week_start: change.weekStart ?? null,
+      p_start_app: change.startApp ?? null,
+      p_motion: change.motion ?? null,
+    });
+  }
+
   async activity(): Promise<Activity[]> {
     return this.rpc<Activity[]>('elum_activity', { p_limit: 30 });
   }
@@ -272,7 +315,14 @@ export class SupabaseAccountApi implements AccountApi {
     };
   }
 
-  private async sessionFor(_session: AuthSession): Promise<Session> {
+  private async sessionFor(session: AuthSession): Promise<Session> {
+    // Waiting for approval from another device (ELUM Account > Security): nothing else answers it.
+    if (tokenRole(session.access_token) === PENDING_ROLE) {
+      throw new ApiError('approval_required', 'Approve this sign-in on a device you are already signed in to.');
+    }
+    // An account Supabase Auth knows but the profile trigger missed gets its profile first.
+    // Older databases lack the function; the account then loads as before.
+    await this.sb.rpc('elum_ensure_profile').then(() => undefined, () => undefined);
     return { account: await this.account() };
   }
 }

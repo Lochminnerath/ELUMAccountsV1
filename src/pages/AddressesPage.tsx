@@ -1,4 +1,6 @@
-import { AtSign, BadgeCheck, Plus, Trash2 } from 'lucide-react';
+import { AtSign, Plus } from 'lucide-react';
+import { VerifiedIcon } from '../components/icons/ElumIcons';
+import { DeleteIcon } from '../components/icons/ElumIcons';
 import { useState, type FormEvent } from 'react';
 import { api, errorMessage } from '../api';
 import { LocalAccountApi } from '../api/local/LocalAccountApi';
@@ -29,8 +31,8 @@ export function AddressesPage() {
     setError(null);
     try {
       await api.startAddress(address);
-      const preview = api instanceof LocalAccountApi ? api.lastCode : null;
-      toast(preview ? `Preview: the code is ${preview.code}` : `We sent a code to ${address}`, { tone: 'success', duration: 9000 });
+      const local = api instanceof LocalAccountApi ? api.lastCode : null;
+      toast(local ? `Not connected to ELUM, so here is the code: ${local.code}` : `We sent a code to ${address}`, { tone: 'success', duration: 9000 });
       setAddress('');
       await refresh();
     } catch (err) {
@@ -68,7 +70,7 @@ export function AddressesPage() {
                 {a.verified && (
                   <>
                     {' · '}
-                    <BadgeCheck size={14} strokeWidth={2} aria-hidden="true" /> confirmed
+                    <VerifiedIcon size={14} strokeWidth={2} aria-hidden="true" /> confirmed
                   </>
                 )}
               </span>
@@ -86,7 +88,7 @@ export function AddressesPage() {
                   )
                 }
               >
-                <Trash2 size={18} strokeWidth={1.75} />
+                <DeleteIcon size={18} strokeWidth={1.75} />
               </button>
             )}
           </li>

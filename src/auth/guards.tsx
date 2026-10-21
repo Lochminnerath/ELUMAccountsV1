@@ -8,6 +8,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const { status } = useAuth();
   const location = useLocation();
   if (status === 'loading') return <FullPageLoader label="Opening your account" />;
+  // Waiting for another device to approve: the approval screen covers everything.
+  if (status === 'approval') return null;
   if (status === 'signed-out') {
     const next = location.pathname + location.search;
     return <Navigate to={next === '/' ? '/signin' : `/signin?next=${encodeURIComponent(next)}`} replace />;

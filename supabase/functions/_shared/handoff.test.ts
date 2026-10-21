@@ -13,6 +13,18 @@ describe('handoff targets', () => {
     expect(handoffTarget('https://user:pass@elumwrite.netlify.app/auth/handoff', allowed)).toBeNull();
     expect(handoffTarget('javascript:alert(1)', allowed)).toBeNull();
   });
+  it('signs people in to every ELUM app, ELUM Store and Browse included', () => {
+    for (const app of ['elumbrowse', 'elumstore', 'elummake', 'elumtype']) {
+      expect(handoffTarget(`https://${app}.netlify.app/auth/handoff`, allowed)?.origin).toBe(`https://${app}.netlify.app`);
+    }
+  });
+  it('accepts every ELUM app on elum.services, and nothing that only looks like it', () => {
+    expect(handoffTarget('https://type.elum.services/auth/handoff', allowed)?.origin).toBe('https://type.elum.services');
+    expect(handoffTarget('https://write.elum.services/auth/handoff', [])).not.toBeNull();
+    expect(handoffTarget('https://elum.services.evil.example/auth/handoff', allowed)).toBeNull();
+    expect(handoffTarget('https://evilelum.services/auth/handoff', allowed)).toBeNull();
+    expect(handoffTarget('http://type.elum.services/auth/handoff', allowed)).toBeNull();
+  });
   it('can be configured, including local development', () => {
     const list = parseOrigins('http://localhost:5173/, https://write.elum.services');
     expect(handoffTarget('http://localhost:5173/auth/handoff', list)).not.toBeNull();

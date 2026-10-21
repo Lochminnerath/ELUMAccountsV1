@@ -31,6 +31,13 @@ them back signed in:
 It works the other way too: "Your ELUM account" in Write or Type, the app switcher, and Type's
 "Open in Write" cards all go through the same handoff, so every jump lands signed in.
 
+### Apps inside Browse tabs
+
+An app in a Browse tab is a frame, and browsers keep a frame's storage apart from the same site
+opened on its own. So Browse, signed in, asks `account-handoff` for a one-time sign-in the first
+time each app opens in a visit, and loads the app's `/auth/handoff` page with it. The app keeps
+that sign-in inside Browse for the rest of the visit.
+
 Why it is safe:
 
 - The token is used once and expires; it rides in the URL fragment, which browsers never send to servers.
@@ -55,8 +62,10 @@ fully shared without any handoff.
 ## Setting it up
 
 1. Deploy `account-handoff` (keep JWT verification on). Set `ELUM_APP_ORIGINS` if the sites are not
-   the three netlify.app defaults.
+   the netlify.app defaults (Write, Type, Make, Browse, Store and Accounts).
 2. In every app (Write, Type, Accounts) set the same `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-3. In Write and Type set `VITE_ELUM_ACCOUNT_URL=https://elumaccounts.netlify.app`. That switches them to
-   signing in through Accounts. Without it they keep their own sign-in pages.
+3. Every app signs in through `https://elumaccounts.netlify.app` unless its `VITE_ELUM_ACCOUNT_URL`
+   names another ELUM Account. Set it to `off` for an app's own sign-in pages only. Away from the
+   apps' own sites (Netlify deploy previews, for example) the apps always use their own sign-in
+   pages, because `account-handoff` only sends sign-ins to the sites it knows.
 4. Supabase, Authentication, URL configuration: add every app's address to Redirect URLs.

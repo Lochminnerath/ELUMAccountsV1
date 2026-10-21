@@ -1,4 +1,4 @@
-import type { Account, Activity, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput } from './types';
+import type { Account, Activity, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput, Preferences, SecuritySettings } from './types';
 
 /**
  * Everything ELUM Accounts asks of its backend. `SupabaseAccountApi` implements it on the ELUM
@@ -36,7 +36,14 @@ export interface AccountApi {
   changePassword(password: string): Promise<void>;
   devices(): Promise<Device[]>;
   signOutOtherDevices(): Promise<void>;
+  /** Signs out one device (not this one). */
+  signOutDevice(id: string): Promise<void>;
   activity(): Promise<Activity[]>;
+
+  security(): Promise<SecuritySettings>;
+  setSignInApprovals(on: boolean): Promise<SecuritySettings>;
+  preferences(): Promise<Preferences>;
+  setPreferences(change: Partial<Preferences>): Promise<Preferences>;
 
   notificationSettings(): Promise<NotificationSetting[]>;
   setNotification(type: string, inApp: boolean, outside: boolean): Promise<void>;

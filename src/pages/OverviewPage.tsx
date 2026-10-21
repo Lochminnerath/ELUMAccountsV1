@@ -1,6 +1,8 @@
-import { ArrowRight, BadgeCheck } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { VerifiedIcon } from '../components/icons/ElumIcons';
 import { Link } from 'react-router';
 import { useAccount } from '../auth/AuthProvider';
+import { AppRing, RING_APPS } from '../components/AppRing';
 import { Avatar } from '../components/Avatar';
 import { ProductGlyph } from '../components/Brand';
 import { APPS, type AppId } from '../lib/apps';
@@ -12,17 +14,32 @@ export function OverviewPage() {
   const a = useAccount();
   const typeAddress = a.addresses.find((x) => x.kind === 'type')?.address;
   const known = a.circles.friends + a.circles.family + a.circles.work;
+  // The apps in the account light up their colour around the picture.
+  const has = new Set(a.services.filter((s) => s.joined).map((s) => s.id));
+  const missing = RING_APPS.filter((app) => !has.has(app.id)).length;
   return (
     <>
       <header className="hero">
-        <Avatar user={a} size={88} />
+        <AppRing has={has} size={88}>
+          <Avatar user={a} size={88} />
+        </AppRing>
         <div>
           <h1 className="hero__name">{a.name}</h1>
           <p className="hero__address">
             {typeAddress ?? a.email}
-            {typeAddress && <BadgeCheck size={16} strokeWidth={2} aria-label="ELUM address" />}
+            {typeAddress && <VerifiedIcon size={16} strokeWidth={2} aria-label="ELUM address" />}
           </p>
           <p className="muted">One account for Write, Type and every ELUM app.</p>
+          <p className="hero__ring-note">
+            {missing === 0 ? (
+              'Every ELUM app is in your account.'
+            ) : (
+              <>
+                {RING_APPS.length - missing} of {RING_APPS.length} ELUM apps in your account.{' '}
+                <a href="/go/store">Get more in Store</a>
+              </>
+            )}
+          </p>
         </div>
       </header>
 
@@ -79,7 +96,7 @@ export function OverviewPage() {
                 </span>
                 <span className="apps__text">
                   <span className="apps__name">{s.name}</span>
-                  <span className="apps__note">{open ? (s.joined ? 'You use it' : 'Not opened yet') : 'Coming soon'}</span>
+                  <span className="apps__note">{open ? (s.joined ? 'In your account' : 'Not added yet') : 'Coming soon'}</span>
                 </span>
                 {open && (
                   <a className="elum-btn elum-btn--secondary elum-btn--sm" href={`/go/${s.id}`}>

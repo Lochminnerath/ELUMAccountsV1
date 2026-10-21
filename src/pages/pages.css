@@ -129,6 +129,15 @@
 .hero p {
   margin: 0;
 }
+.hero__ring-note {
+  margin-top: 6px !important;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+.hero__ring-note a {
+  color: var(--accent-deep);
+  font-weight: 600;
+}
 .cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -545,4 +554,44 @@
   .notice-table__row {
     grid-template-columns: minmax(0, 1fr) 60px 60px;
   }
+}
+
+/* Security: approving new sign-ins. */
+.security-approvals__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.security-approvals__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #3b5bd6;
+  background: rgba(112, 147, 248, 0.16);
+}
+.security-approvals__text {
+  flex: 1;
+  min-width: 0;
+}
+.security-approvals__text .panel__title {
+  margin-top: 0;
+}
+.security-approvals__row .switch {
+  flex: none;
+  margin-top: 4px;
+}
+.security-approvals__note {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-glass);
+  font-size: 13px;
+  line-height: 20px;
+}
+.device-row__out {
+  margin-left: auto;
+  flex: none;
 }

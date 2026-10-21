@@ -17,7 +17,7 @@ const b64url = (b: Uint8Array | string) =>
 
 async function signJwt(header: object, claims: object, pem: string, alg: 'ES256' | 'RS256') {
   const der = Uint8Array.from(atob(pem.replace(/-----[^-]+-----|\s/g, '')), (c) => c.charCodeAt(0));
-  const key = await crypto.subtle.importKey('pkcs8', der,
+  const key = await crypto.subtle.importKey('pkcs8', der as BufferSource,
     alg === 'ES256' ? { name: 'ECDSA', namedCurve: 'P-256' } : { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
   const input = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(claims))}`;
   const sig = await crypto.subtle.sign(alg === 'ES256' ? { name: 'ECDSA', hash: 'SHA-256' } : 'RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(input));

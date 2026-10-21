@@ -64,9 +64,9 @@ Deno.serve(async (req) => {
 
   let ok = false;
   try {
-    const key = await crypto.subtle.importKey('spki', b64(found.publicKey), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    const key = await crypto.subtle.importKey('spki', b64(found.publicKey) as BufferSource, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
     const message = new TextEncoder().encode(`elum-sign-in:v1:${signInId}:${found.challenge}:${decision}`);
-    ok = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, rawSignature(b64(signature)), message);
+    ok = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, rawSignature(b64(signature)) as BufferSource, message);
   } catch {
     ok = false;
   }

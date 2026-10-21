@@ -24,7 +24,7 @@ revoke all on elum.devices from public, anon, authenticated;
 
 -- Each waiting sign-in gets a random challenge the app signs, and remembers who decided it.
 alter table elum.sign_ins
-  add column challenge text not null default encode(extensions.gen_random_bytes(32), 'base64'),
+  add column challenge text not null default encode(decode(replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''), 'hex'), 'base64'),
   add column decided_by_device uuid references elum.devices (id) on delete set null,
   add column pushed_at timestamptz;
 

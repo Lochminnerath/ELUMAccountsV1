@@ -8,6 +8,7 @@ interface AuthContextValue {
   status: Status;
   account: Account | null;
   signIn: (input: SignInInput) => Promise<Account>;
+  signInWithPasskey: (options?: { autofill?: boolean; email?: string }) => Promise<Account>;
   signUp: (input: SignUpInput) => Promise<Account>;
   signOut: (everywhere?: boolean) => Promise<void>;
   /** Replaces the account after a change, or reloads it. */
@@ -51,6 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return s.account;
   }, []);
 
+  const signInWithPasskey = useCallback(async (options?: { autofill?: boolean; email?: string }) => {
+    const s = await api.signInWithPasskey(options);
+    setAccountState(s.account);
+    setStatus('signed-in');
+    return s.account;
+  }, []);
+
   const signUp = useCallback(async (input: SignUpInput) => {
     const s = await api.signUp(input);
     setAccountState(s.account);
@@ -72,8 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, account, signIn, signUp, signOut, setAccount: setAccountState, refresh }),
-    [status, account, signIn, signUp, signOut, refresh],
+    () => ({ status, account, signIn, signInWithPasskey, signUp, signOut, setAccount: setAccountState, refresh }),
+    [status, account, signIn, signInWithPasskey, signUp, signOut, refresh],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -80,6 +80,16 @@ export interface Activity {
 export interface SecuritySettings {
   /** New password sign-ins wait until a signed-in device approves them. */
   approveSignIns: boolean;
+  /** At least one passkey is saved on the account. */
+  hasPasskey?: boolean;
+}
+
+/** A passkey saved on the account (Face ID, Touch ID, a device PIN or a security key). */
+export interface Passkey {
+  id: string;
+  name: string;
+  createdAt: string;
+  lastUsedAt: string | null;
 }
 
 export interface Preferences {

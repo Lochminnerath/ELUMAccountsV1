@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Skeleton } from '../components/Skeleton';
 import { api, errorMessage, type NotificationSetting } from '../api';
 import { useAccount } from '../auth/AuthProvider';
 import { ProductGlyph } from '../components/Brand';
-import { Loader } from '../components/Loader';
 import { useToast } from '../components/Toast';
 import './pages.css';
 
@@ -35,7 +35,7 @@ export function NotificationsPage() {
         <p className="muted">The bell in every ELUM app shows these. Choose which also reach you outside the apps.</p>
       </header>
       {list === null ? (
-        <Loader size={32} label="Loading" />
+        <Skeleton lines={4} label="Loading" />
       ) : (
         <div className="panel">
           <div className="notice-table" role="table" aria-label="Notifications">

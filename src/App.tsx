@@ -24,6 +24,7 @@ import { Shell } from './shell/Shell';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { WhatsNew } from './whatsnew/WhatsNew';
 import { SecurityLayer } from './security/SecurityLayer';
+import { PasskeyOffer } from './passkeys/PasskeyOffer';
 import { useAuth } from './auth/AuthProvider';
 import { Navigate, useSearchParams } from 'react-router';
 import { FullPageLoader } from './components/Loader';
@@ -102,6 +103,7 @@ export function App() {
           <TooltipLayer />
           <WhatsNew />
           <SecurityLayer />
+          <PasskeyOffer />
           <PreferencesSync />
         </AuthProvider>
       </ToastProvider>

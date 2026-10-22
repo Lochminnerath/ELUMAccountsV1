@@ -69,3 +69,40 @@ fully shared without any handoff.
    apps' own sites (Netlify deploy previews, for example) the apps always use their own sign-in
    pages, because `account-handoff` only sends sign-ins to the sites it knows.
 4. Supabase, Authentication, URL configuration: add every app's address to Redirect URLs.
+
+## Passkeys
+
+People can sign in to ELUM Account with a passkey: Face ID, Touch ID, a device PIN or a security
+key. The browser keeps the private key (in iCloud Keychain, Google Password Manager or another password
+manager, so it reaches the person's other devices); ELUM stores only the public key
+(`elum.passkeys`, migration `20261031000000_passkeys.sql`).
+
+```
+1. Sign-in page: "Sign in with a passkey", or pick one from the address field's suggestions.
+2. The passkey function (login-options) hands out a one-time challenge, good for five minutes.
+3. The browser asks for Face ID / Touch ID / the PIN and signs the challenge.
+4. passkey (login-verify) checks the signature against the stored public key, then makes a one-time
+   sign-in token (a magic link that is never emailed) and returns it.
+5. The page trades it for a session (supabase.auth.verifyOtp, type magiclink).
+```
+
+That sign-in counts as an email link, so "Approve new sign-ins" lets it straight in: a passkey proves
+more than a password. After a password or email-link sign-in, people without a passkey are asked
+once per sign-in whether they want to make one; Security lists, renames and removes them.
+
+**A passkey belongs to the site address it was made on.** Passkeys made on
+`elumaccounts.netlify.app` work only there. When ELUM Account moves to `account.elum.services`,
+everyone makes new passkeys there from Security. The old ones stay listed and still count as having a
+passkey, so remove them (or clear `elum.passkeys` at the move) to bring the "Sign in faster" suggestion back. The passkey function accepts
+`https://elumaccounts.netlify.app`, `https://account.elum.services` and `http://localhost`.
+
+Deploy it with `supabase functions deploy passkey --no-verify-jwt` (signing in has no session yet;
+making a passkey checks the session itself).
+
+## Nearby approvals
+
+Browsers cannot look around a local network, so "nearby" means: the waiting sign-in comes from the
+same public address as the signed-in device being asked (usually the same home or office network).
+`elum_sign_in_requests()` marks those `nearby` and lists them first; the signed-in device asks about
+them straight away with a "Nearby · on your network" badge. The right number still has to be
+picked: nothing is approved by itself.

@@ -9,6 +9,8 @@ import { AccountLockup } from '../components/Brand';
 import { appFor } from '../lib/apps';
 import { Loader } from '../components/Loader';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { passkeyAutofillSupported, passkeysSupported } from '../passkeys/passkeys';
+import { PasskeyIcon } from '../passkeys/PasskeyIcon';
 import './AuthPage.css';
 
 type Mode = 'signin' | 'signup';
@@ -21,7 +23,7 @@ type HandleState = { kind: 'idle' } | { kind: 'checking' } | { kind: 'ok' } | { 
  * (?to=<app>/auth/handoff&next=<path>), people go straight back there, signed in.
  */
 export function AuthPage({ mode }: { mode: Mode }) {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signInWithPasskey, signUp } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const to = params.get('to');
@@ -67,6 +69,41 @@ export function AuthPage({ mode }: { mode: Mode }) {
     };
   }, [handle, kind, isSignUp]);
 
+  // Back to the app that sent them, signed in there too.
+  const done = () => {
+    if (back && to) navigate(`/continue?${new URLSearchParams({ to, next }).toString()}`, { replace: true });
+    else navigate(next, { replace: true });
+  };
+
+  // Passkeys offered among the address field's suggestions, where the browser can.
+  useEffect(() => {
+    if (isSignUp || api.mode !== 'remote') return;
+    let live = true;
+    void passkeyAutofillSupported().then((ok) => {
+      if (!ok || !live) return;
+      signInWithPasskey({ autofill: true }).then(
+        () => live && done(),
+        (err) => live && !isApiError(err, 'cancelled') && setError({ message: errorMessage(err) }),
+      );
+    });
+    return () => {
+      live = false;
+    };
+    // Once per visit to the page.
+  }, [isSignUp]);
+
+  const withPasskey = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await signInWithPasskey({ email: login.includes('@') ? login.trim() : undefined });
+      done();
+    } catch (err) {
+      if (!isApiError(err, 'cancelled')) setError({ message: errorMessage(err) });
+      setBusy(false);
+    }
+  };
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (isSignUp && kind === 'type' && handleState.kind === 'bad') {
@@ -79,9 +116,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
       if (!isSignUp) await signIn({ login, password });
       else if (kind === 'type') await signUp({ kind: 'type', handle, name, password, recoveryEmail: recovery || undefined });
       else await signUp({ kind: 'external', name, email, password });
-      // Back to the app that sent them, signed in there too.
-      if (back && to) navigate(`/continue?${new URLSearchParams({ to, next }).toString()}`, { replace: true });
-      else navigate(next, { replace: true });
+      done();
     } catch (err) {
       const field = isApiError(err) ? (err.details?.field as Field | undefined) : undefined;
       setError({ message: errorMessage(err), field, notice: isApiError(err, 'confirm_email') });
@@ -188,7 +223,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
               <input
                 id="login"
                 className="input"
-                autoComplete="username"
+                autoComplete="username webauthn"
                 autoCapitalize="none"
                 spellCheck={false}
                 placeholder={`name or name@${api.typeDomain}`}
@@ -264,6 +299,18 @@ export function AuthPage({ mode }: { mode: Mode }) {
           <button type="submit" className="elum-btn elum-btn--primary elum-btn--block auth__submit" disabled={busy}>
             {busy ? <Loader size={20} brand label={isSignUp ? 'Creating your account' : 'Signing in'} /> : isSignUp ? 'Create account' : 'Sign in'}
           </button>
+
+          {!isSignUp && passkeysSupported() && (
+            <>
+              <p className="auth__or" aria-hidden="true">
+                <span>or</span>
+              </p>
+              <button type="button" className="elum-btn elum-btn--secondary elum-btn--block auth__passkey" disabled={busy} onClick={() => void withPasskey()}>
+                <PasskeyIcon size={20} />
+                Sign in with a passkey
+              </button>
+            </>
+          )}
 
           <p className="auth__switch">
             {isSignUp ? 'Already have an ELUM account?' : 'New to ELUM?'} <Link to={switchHref}>{isSignUp ? 'Sign in' : 'Create an account'}</Link>

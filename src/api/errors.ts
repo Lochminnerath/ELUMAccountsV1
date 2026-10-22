@@ -12,6 +12,7 @@ export type ApiErrorCode =
   | 'rate_limited'
   | 'network'
   | 'approval_required'
+  | 'cancelled'
   | 'server';
 
 const STATUS: Record<ApiErrorCode, number> = {
@@ -28,6 +29,7 @@ const STATUS: Record<ApiErrorCode, number> = {
   rate_limited: 429,
   network: 0,
   approval_required: 403,
+  cancelled: 0,
   server: 500,
 };
 

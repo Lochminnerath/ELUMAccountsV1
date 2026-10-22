@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Skeleton } from '../components/Skeleton';
 import { api, errorMessage, type Preferences } from '../api';
-import { Loader } from '../components/Loader';
 import { useToast } from '../components/Toast';
 import { applyPreferences } from '../lib/preferences';
 import './pages.css';
@@ -73,7 +73,7 @@ export function PreferencesPage() {
         <p className="muted">How ELUM looks and behaves for you, on every device you sign in to.</p>
       </header>
       {!prefs ? (
-        <Loader size={28} label="Loading preferences" />
+        <Skeleton lines={3} label="Loading preferences" />
       ) : (
         <>
           {group('startApp', 'Open after signing in', 'Where signing in here takes you, when you did not come from an app.', START)}

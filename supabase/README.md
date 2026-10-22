@@ -19,6 +19,7 @@ search or delivering a message, so a choice made here holds in Write and Type.
 supabase functions deploy account-handoff
 supabase functions deploy account-address
 supabase functions deploy account-delete --no-verify-jwt
+supabase functions deploy passkey --no-verify-jwt
 supabase secrets set ELUM_APP_ORIGINS=https://elumwrite.netlify.app,https://elumtype.netlify.app,https://elumaccounts.netlify.app \
   ACCOUNT_EMAIL_FROM="ELUM <account@elum.services>" APP_URL=https://elumaccounts.netlify.app CRON_SECRET=<long random>
 ```

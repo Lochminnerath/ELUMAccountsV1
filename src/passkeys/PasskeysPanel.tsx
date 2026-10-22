@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api, errorMessage, isApiError, type Passkey } from '../api';
 import { Skeleton } from '../components/Skeleton';
+import { SupportLink, TroubleshootingLink } from '../components/SupportLink';
 import { useToast } from '../components/Toast';
 import { formatFull, formatWhen } from '../lib/time';
 import { PASSKEYS_CHANGED } from './PasskeyOffer';
@@ -14,6 +15,7 @@ export function PasskeysPanel({ onChange }: { onChange?: () => void }) {
   const [list, setList] = useState<Passkey[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
   const supported = passkeysSupported();
 
   const load = useCallback(() => {
@@ -32,12 +34,16 @@ export function PasskeysPanel({ onChange }: { onChange?: () => void }) {
 
   const add = async () => {
     setBusy(true);
+    setProblem(null);
     try {
       await api.addPasskey();
       toast('Passkey saved. Next time, sign in with a glance or a touch.', { tone: 'success' });
       changed();
     } catch (e) {
-      if (!isApiError(e, 'cancelled')) toast(errorMessage(e), { tone: 'error' });
+      if (!isApiError(e, 'cancelled')) {
+        setProblem(errorMessage(e));
+        toast(errorMessage(e), { tone: 'error', cause: e, code: 'passkeys-failed' });
+      }
     } finally {
       setBusy(false);
     }
@@ -51,7 +57,8 @@ export function PasskeysPanel({ onChange }: { onChange?: () => void }) {
       setEditing(null);
       changed();
     } catch (err) {
-      toast(errorMessage(err), { tone: 'error' });
+      setProblem(errorMessage(err));
+      toast(errorMessage(err), { tone: 'error', cause: err, code: 'passkeys-failed' });
     }
   };
 
@@ -62,7 +69,8 @@ export function PasskeysPanel({ onChange }: { onChange?: () => void }) {
       toast(`${p.name} is removed`, { tone: 'success' });
       changed();
     } catch (e) {
-      toast(errorMessage(e), { tone: 'error' });
+      setProblem(errorMessage(e));
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'passkeys-failed' });
     }
   };
 
@@ -133,6 +141,12 @@ export function PasskeysPanel({ onChange }: { onChange?: () => void }) {
           <p className="muted panel__hint">This browser cannot make passkeys. Try Safari, Chrome, Edge or Firefox on a recent device.</p>
         )}
       </div>
+      {problem && (
+        <div className="support-links support-links--start" role="group" aria-label="Help with passkeys">
+          <TroubleshootingLink topic="passkeys">Passkeys</TroubleshootingLink>
+          <SupportLink app="account" code="passkey-failed" message={problem} />
+        </div>
+      )}
     </section>
   );
 }

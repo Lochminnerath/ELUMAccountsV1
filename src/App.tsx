@@ -6,6 +6,7 @@ import { AuthProvider } from './auth/AuthProvider';
 import { RequireAuth } from './auth/guards';
 import { AccountMark } from './components/Brand';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SupportLinks } from './components/SupportLink';
 import { ToastProvider } from './components/Toast';
 import { TooltipLayer } from './components/TooltipLayer';
 import { AddressesPage } from './pages/AddressesPage';
@@ -120,6 +121,7 @@ function NotFound() {
       <Link to="/" className="elum-btn elum-btn--primary">
         Go to your account
       </Link>
+      <SupportLinks app="account" code="not-found" message="We could not find that page" />
     </div>
   );
 }

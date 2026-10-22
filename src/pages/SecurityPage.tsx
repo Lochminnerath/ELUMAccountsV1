@@ -77,7 +77,7 @@ export function SecurityPage() {
       toast(on ? 'New sign-ins now wait for your approval' : 'New sign-ins no longer need approval', { tone: 'success' });
       load();
     } catch (e) {
-      toast(errorMessage(e), { tone: 'error' });
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'security-failed' });
     }
   };
 
@@ -87,7 +87,7 @@ export function SecurityPage() {
       toast(`${deviceName(d.userAgent)} is signed out`, { tone: 'success' });
       load();
     } catch (e) {
-      toast(errorMessage(e), { tone: 'error' });
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'security-failed' });
     }
   };
 
@@ -192,7 +192,7 @@ export function SecurityPage() {
                   toast('Every other device is signed out', { tone: 'success' });
                   load();
                 },
-                (e) => toast(errorMessage(e), { tone: 'error' }),
+                (e) => toast(errorMessage(e), { tone: 'error', cause: e, code: 'security-failed' }),
               )
             }
           >

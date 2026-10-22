@@ -31,7 +31,7 @@ export function PreferencesPage() {
   const [prefs, setPrefs] = useState<Preferences | null>(null);
 
   useEffect(() => {
-    api.preferences().then(setPrefs, (e) => toast(errorMessage(e), { tone: 'error' }));
+    api.preferences().then(setPrefs, (e) => toast(errorMessage(e), { tone: 'error', cause: e, code: 'preferences-failed' }));
   }, [toast]);
 
   const change = async (next: Partial<Preferences>) => {
@@ -44,7 +44,7 @@ export function PreferencesPage() {
       applyPreferences(saved);
     } catch (e) {
       setPrefs(before);
-      toast(errorMessage(e), { tone: 'error' });
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'preferences-failed' });
     }
   };
 

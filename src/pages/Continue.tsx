@@ -4,6 +4,7 @@ import { api, errorMessage } from '../api';
 import { useAuth } from '../auth/AuthProvider';
 import { AccountMark } from '../components/Brand';
 import { FullPageLoader } from '../components/Loader';
+import { SupportLinks } from '../components/SupportLink';
 import { appFor } from '../lib/apps';
 
 /**
@@ -51,6 +52,7 @@ export function ContinuePage() {
       <Link to="/" className="elum-btn elum-btn--primary">
         Go to your account
       </Link>
+      <SupportLinks app="account" code="handoff-failed" message={error} />
     </div>
   );
 }
@@ -91,6 +93,7 @@ export function HandoffPage() {
       <Link to="/signin" className="elum-btn elum-btn--primary">
         Sign in
       </Link>
+      <SupportLinks app="account" code="signin-failed" message={error} />
     </div>
   );
 }

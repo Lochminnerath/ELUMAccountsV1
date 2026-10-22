@@ -48,7 +48,7 @@ export function AddressesPage() {
       toast(`${a} is on your account`, { tone: 'success' });
       await refresh();
     } catch (err) {
-      toast(errorMessage(err), { tone: 'error' });
+      toast(errorMessage(err), { tone: 'error', cause: err, code: 'addresses-failed' });
     }
   };
 
@@ -84,7 +84,7 @@ export function AddressesPage() {
                 onClick={() =>
                   api.removeAddress(a.address).then(
                     () => refresh(),
-                    (e) => toast(errorMessage(e), { tone: 'error' }),
+                    (e) => toast(errorMessage(e), { tone: 'error', cause: e, code: 'addresses-failed' }),
                   )
                 }
               >
@@ -119,7 +119,7 @@ export function AddressesPage() {
             <button type="submit" className="elum-btn elum-btn--primary" disabled={(codes[a] ?? '').length !== 6}>
               Confirm
             </button>
-            <button type="button" className="elum-btn elum-btn--quiet" onClick={() => api.startAddress(a).then(() => toast('We sent a new code'), (e) => toast(errorMessage(e), { tone: 'error' }))}>
+            <button type="button" className="elum-btn elum-btn--quiet" onClick={() => api.startAddress(a).then(() => toast('We sent a new code'), (e) => toast(errorMessage(e), { tone: 'error', cause: e, code: 'addresses-failed' }))}>
               Send a new code
             </button>
           </div>

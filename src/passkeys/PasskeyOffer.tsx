@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage, isApiError } from '../api';
 import { useAuth } from '../auth/AuthProvider';
+import { SupportLink, TroubleshootingLink } from '../components/SupportLink';
 import { useToast } from '../components/Toast';
 import { notNowFor, passkeysSupported, saveNotNow, shouldOfferPasskey } from './passkeys';
 import { PasskeyIcon } from './PasskeyIcon';
@@ -18,6 +19,7 @@ export function PasskeyOffer() {
   const [signInId, setSignInId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -56,13 +58,17 @@ export function PasskeyOffer() {
 
   const create = async () => {
     setBusy(true);
+    setProblem(null);
     try {
       await api.addPasskey();
       setOpen(false);
       window.dispatchEvent(new Event(PASSKEYS_CHANGED));
       toast('Passkey saved. Next time, sign in with a glance or a touch.', { tone: 'success' });
     } catch (e) {
-      if (!isApiError(e, 'cancelled')) toast(errorMessage(e), { tone: 'error' });
+      if (!isApiError(e, 'cancelled')) {
+        setProblem(errorMessage(e));
+        toast(errorMessage(e), { tone: 'error', cause: e, code: 'passkey-offer-failed' });
+      }
     } finally {
       setBusy(false);
     }
@@ -104,6 +110,12 @@ export function PasskeyOffer() {
           Not now
         </button>
       </div>
+      {problem && (
+        <div className="support-links" role="group" aria-label="Help with passkeys">
+          <TroubleshootingLink topic="passkeys">Passkeys</TroubleshootingLink>
+          <SupportLink app="account" code="passkey-failed" message={problem} />
+        </div>
+      )}
     </dialog>
   );
 }

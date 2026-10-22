@@ -1,4 +1,4 @@
-import type { Account, Activity, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput, Preferences, SecuritySettings } from './types';
+import type { Account, Activity, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput, Preferences, SecuritySettings, Passkey } from './types';
 
 /**
  * Everything ELUM Accounts asks of its backend. `SupabaseAccountApi` implements it on the ELUM
@@ -16,6 +16,13 @@ export interface AccountApi {
   signOut(everywhere?: boolean): Promise<void>;
   handleAvailable(handle: string): Promise<boolean>;
   onUnauthorized(handler: () => void): () => void;
+  /**
+   * Signs in with a passkey. `autofill` waits for one picked from the address field's suggestions;
+   * `email` narrows the choice to that account's passkeys.
+   */
+  signInWithPasskey(options?: { autofill?: boolean; email?: string }): Promise<Session>;
+  /** This sign-in, so a choice like "Not now" can last exactly as long as it. */
+  signInId(): Promise<string | null>;
 
   account(): Promise<Account>;
   updateProfile(change: ProfileChange): Promise<Account>;
@@ -42,6 +49,11 @@ export interface AccountApi {
 
   security(): Promise<SecuritySettings>;
   setSignInApprovals(on: boolean): Promise<SecuritySettings>;
+  passkeys(): Promise<Passkey[]>;
+  /** Makes a passkey on this device (the browser asks for Face ID, Touch ID or the PIN). */
+  addPasskey(): Promise<void>;
+  renamePasskey(id: string, name: string): Promise<void>;
+  removePasskey(id: string): Promise<void>;
   preferences(): Promise<Preferences>;
   setPreferences(change: Partial<Preferences>): Promise<Preferences>;
 

@@ -100,7 +100,9 @@ export function Shell({ children }: { children: ReactNode }) {
       </nav>
 
       <main id="main" className="shell__main">
-        <div className="page">{children}</div>
+        <div className="page" key={location.pathname}>
+          {children}
+        </div>
       </main>
     </div>
   );

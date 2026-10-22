@@ -2,44 +2,40 @@ import { ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { AccountMark } from '../components/Brand';
-import { APP_NAME, RELEASES, tourSteps, unseenReleases, type Step } from './releases';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { api } from '../api';
+import { APP_NAME, RELEASES, tourSteps, type Step } from './releases';
+import { seenStore, whatsNewPlan } from './seen';
 import { Scene } from './scenes';
 import './WhatsNew.css';
 
-const SEEN_KEY = 'elum.account.whats-new';
 const OPEN_EVENT = 'elum:whats-new';
 const ACCENT = '#94c858';
 
-function lastSeen(): string | null {
-  try {
-    return localStorage.getItem(SEEN_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function markSeen() {
-  try {
-    if (RELEASES[0]) localStorage.setItem(SEEN_KEY, RELEASES[0].id);
-  } catch {
-    // Without storage the tour shows again next time, which is harmless.
-  }
-}
+// This app's Supabase client, when connected: the last release seen is kept on the account.
+const store = seenStore(api.mode === 'remote' ? (api as unknown as { sb: SupabaseClient }).sb : null);
 
 /** Opens the tour of every release, from a menu. */
 export function openWhatsNew() {
   window.dispatchEvent(new Event(OPEN_EVENT));
 }
 
-/** Shows an animated tour of what changed once after each update, and on request. */
+/** Shows an animated tour of what changed once after each update (never to someone new), and on request. */
 export function WhatsNew() {
   const { status } = useAuth();
   const [steps, setSteps] = useState<Step[] | null>(null);
 
   useEffect(() => {
     if (status !== 'signed-in') return;
-    const unseen = unseenReleases(RELEASES, lastSeen());
-    if (unseen.length) setSteps(tourSteps(unseen));
+    let live = true;
+    void store.read().then((lastSeen) => {
+      const plan = whatsNewPlan(RELEASES, lastSeen);
+      if (plan.record) void store.write(plan.record);
+      if (live && plan.show.length) setSteps(tourSteps(plan.show));
+    });
+    return () => {
+      live = false;
+    };
   }, [status]);
 
   useEffect(() => {
@@ -53,7 +49,7 @@ export function WhatsNew() {
     <Tour
       steps={steps}
       onClose={() => {
-        markSeen();
+        if (RELEASES[0]) void store.write(RELEASES[0].id);
         setSteps(null);
       }}
     />

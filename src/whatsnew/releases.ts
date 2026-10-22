@@ -29,6 +29,24 @@ export const APP_NAME = 'ELUM Account';
 
 export const RELEASES: Release[] = [
   {
+    id: '2026-10-31-passkeys',
+    date: '31 October 2026',
+    title: 'Sign in with a glance',
+    intro: 'Passkeys let you sign in with Face ID, Touch ID or your device PIN, and approving a new sign-in is quicker when it is close by.',
+    features: [
+      {
+        title: 'Passkeys',
+        text: 'Make a passkey once and sign in without typing a password. It is saved in your iCloud Keychain or password manager, so your other devices can use it too. Add one on the Security page.',
+        art: 'check',
+      },
+      {
+        title: 'Approvals close to home',
+        text: 'When a new sign-in comes from the same network as a device you are signed in on, that device asks you straight away and marks it nearby. You still pick the number, so nobody gets in by accident.',
+        art: 'devices',
+      },
+    ],
+  },
+  {
     id: '2026-10-20-ring',
     date: '20 October 2026',
     title: 'Your apps, in colour',
@@ -113,13 +131,6 @@ export const RELEASES: Release[] = [
     ],
   },
 ];
-
-/** The releases someone has not seen yet, given the last one they saw. New visitors see the latest. */
-export function unseenReleases(releases: Release[], lastSeen: string | null): Release[] {
-  if (!releases.length) return [];
-  const at = lastSeen ? releases.findIndex((r) => r.id === lastSeen) : -1;
-  return at === -1 ? releases.slice(0, 1) : releases.slice(0, at);
-}
 
 export interface Step {
   key: string;

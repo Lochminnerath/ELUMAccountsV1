@@ -1,6 +1,6 @@
 import type { AccountApi } from '../client';
 import { ApiError } from '../errors';
-import type { Account, AccountAddress, Activity, Audience, Circle, Device, NotificationSetting, Person, Preferences, Privacy, ProfileChange, SecuritySettings, Session, SignInInput, SignUpInput } from '../types';
+import type { Account, AccountAddress, Activity, Audience, Circle, Device, NotificationSetting, Passkey, Person, Preferences, Privacy, ProfileChange, SecuritySettings, Session, SignInInput, SignUpInput } from '../types';
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
 import { DEFAULT_ITERATIONS, hashPassword, verifyPassword, type PasswordHash } from './passwords';
 
@@ -372,12 +372,36 @@ export class LocalAccountApi implements AccountApi {
   }
 
   async security(): Promise<SecuritySettings> {
-    return { approveSignIns: this.extra().approveSignIns ?? false };
+    return { approveSignIns: this.extra().approveSignIns ?? false, hasPasskey: false };
   }
 
   async setSignInApprovals(on: boolean): Promise<SecuritySettings> {
     this.saveExtra({ approveSignIns: on });
     return this.security();
+  }
+
+  async passkeys(): Promise<Passkey[]> {
+    return [];
+  }
+
+  async addPasskey(): Promise<void> {
+    throw new ApiError('not_found', 'Passkeys work once ELUM is connected.');
+  }
+
+  async renamePasskey(): Promise<void> {
+    throw new ApiError('not_found', 'That passkey is not in your account.');
+  }
+
+  async removePasskey(): Promise<void> {
+    throw new ApiError('not_found', 'That passkey is not in your account.');
+  }
+
+  async signInWithPasskey(): Promise<Session> {
+    throw new ApiError('not_found', 'Passkeys work once ELUM is connected.');
+  }
+
+  async signInId(): Promise<string | null> {
+    return 'preview';
   }
 
   async preferences(): Promise<Preferences> {

@@ -1,7 +1,8 @@
+import { startAuthentication, startRegistration, type PublicKeyCredentialCreationOptionsJSON, type PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
 import { createClient, type Session as AuthSession, type SupabaseClient } from '@supabase/supabase-js';
 import type { AccountApi } from '../client';
 import { ApiError, toApiError, type RawError } from '../errors';
-import type { Account, Activity, Circle, Device, NotificationSetting, Person, Preferences, Privacy, ProfileChange, SecuritySettings, Session, SignInInput, SignUpInput } from '../types';
+import type { Account, Activity, Circle, Device, NotificationSetting, Passkey, Person, Preferences, Privacy, ProfileChange, SecuritySettings, Session, SignInInput, SignUpInput } from '../types';
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
 import { cookieStorage, usableCookieDomain } from './cookieStorage';
 import { PENDING_ROLE, tokenRole } from '../../security/approvals';
@@ -60,6 +61,20 @@ export class SupabaseAccountApi implements AccountApi {
       throw toApiError(error);
     }
     return this.sessionFor(data.session);
+  }
+
+  async signInWithPasskey(options: { autofill?: boolean; email?: string } = {}): Promise<Session> {
+    const start = await this.passkeyCall<{ challengeId: string; options: PublicKeyCredentialRequestOptionsJSON }>({ action: 'login-options' });
+    const response = await passkeyCeremony(() => startAuthentication({ optionsJSON: start.options, useBrowserAutofill: !!options.autofill }));
+    const { tokenHash } = await this.passkeyCall<{ tokenHash: string }>({ action: 'login-verify', challengeId: start.challengeId, response });
+    const { data, error } = await this.sb.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' });
+    if (error || !data.session) throw new ApiError('unauthorized', 'That passkey did not sign you in. Try again, or use your password.');
+    return this.sessionFor(data.session);
+  }
+
+  async signInId(): Promise<string | null> {
+    const { data } = await this.sb.auth.getSession();
+    return sessionIdOf(data.session?.access_token);
   }
 
   private domainLookup: Promise<string> | null = null;
@@ -225,6 +240,25 @@ export class SupabaseAccountApi implements AccountApi {
     return this.rpc<SecuritySettings>('elum_set_sign_in_approvals', { p_on: on });
   }
 
+  async passkeys(): Promise<Passkey[]> {
+    return this.rpc<Passkey[]>('elum_my_passkeys');
+  }
+
+  async addPasskey(): Promise<void> {
+    await this.me();
+    const start = await this.passkeyCall<{ challengeId: string; options: PublicKeyCredentialCreationOptionsJSON }>({ action: 'register-options' });
+    const response = await passkeyCeremony(() => startRegistration({ optionsJSON: start.options }));
+    await this.passkeyCall({ action: 'register-verify', challengeId: start.challengeId, response });
+  }
+
+  async renamePasskey(id: string, name: string): Promise<void> {
+    await this.rpc('elum_rename_passkey', { p_id: id, p_name: name });
+  }
+
+  async removePasskey(id: string): Promise<void> {
+    await this.rpc('elum_remove_passkey', { p_id: id });
+  }
+
   async preferences(): Promise<Preferences> {
     return this.rpc<Preferences>('elum_preferences');
   }
@@ -293,6 +327,14 @@ export class SupabaseAccountApi implements AccountApi {
     return (data?.data ?? (data as unknown)) as T;
   }
 
+  /** The passkey function, with or without a session (signing in has none yet). */
+  private async passkeyCall<T = unknown>(body: Record<string, unknown>): Promise<T> {
+    const { data, error } = await this.sb.functions.invoke<{ data?: T; error?: RawError }>('passkey', { body });
+    if (error) throw await functionError(error);
+    if (data?.error) throw toApiError(data.error);
+    return data?.data as T;
+  }
+
   private async signedUrl(path: string | null): Promise<string | null> {
     if (!path) return null;
     const { data } = await this.sb.storage.from(AVATARS).createSignedUrl(path, SIGNED_URL_SECONDS);
@@ -324,6 +366,29 @@ export class SupabaseAccountApi implements AccountApi {
     // Older databases lack the function; the account then loads as before.
     await this.sb.rpc('elum_ensure_profile').then(() => undefined, () => undefined);
     return { account: await this.account() };
+  }
+}
+
+/** The browser's passkey sheet: closing it is not an error worth showing. */
+async function passkeyCeremony<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (e) {
+    const name = (e as { name?: string; cause?: { name?: string } }).name;
+    const cause = (e as { cause?: { name?: string } }).cause?.name;
+    if ([name, cause].some((n) => n === 'NotAllowedError' || n === 'AbortError')) throw new ApiError('cancelled', 'No passkey was used.');
+    if (name === 'InvalidStateError') throw new ApiError('conflict', 'This device already has a passkey for your account.');
+    throw new ApiError('invalid', 'This browser could not use a passkey. Try again, or use your password.');
+  }
+}
+
+function sessionIdOf(token: string | undefined): string | null {
+  try {
+    const part = token?.split('.')[1];
+    if (!part) return null;
+    return (JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '='))) as { session_id?: string }).session_id ?? null;
+  } catch {
+    return null;
   }
 }
 

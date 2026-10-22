@@ -1,0 +1,48 @@
+.skeleton {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+.skeleton__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.skeleton__lines {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+}
+.skeleton__shape {
+  display: block;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--surface-glass) 0%, var(--hairline) 40%, var(--surface-glass) 80%) 0 0 / 300% 100%;
+  animation: skeleton-shimmer 1.4s linear infinite;
+}
+.skeleton__line {
+  height: 12px;
+}
+.skeleton__line--short {
+  width: 32%;
+  height: 10px;
+  opacity: 0.7;
+}
+.skeleton__dot {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__shape {
+    animation: none;
+  }
+}

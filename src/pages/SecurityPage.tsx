@@ -4,9 +4,10 @@ import { SignOutIcon } from '../components/icons/ElumIcons';
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, errorMessage, type Activity, type Device, type SecuritySettings } from '../api';
 import { MIN_PASSWORD } from '../api/validation';
-import { Loader } from '../components/Loader';
 import { useToast } from '../components/Toast';
 import { formatFull, formatWhen } from '../lib/time';
+import { PasskeysPanel } from '../passkeys/PasskeysPanel';
+import { Skeleton } from '../components/Skeleton';
 import './pages.css';
 
 const ACTIONS: Record<string, string> = {
@@ -24,6 +25,8 @@ const ACTIONS: Record<string, string> = {
   'security.approvals_off': 'Sign-in approvals turned off',
   'security.sign_in_approved': 'New sign-in approved',
   'security.sign_in_denied': 'New sign-in stopped',
+  'security.passkey_added': 'Passkey added',
+  'security.passkey_removed': 'Passkey removed',
 };
 
 /** A readable name for a browser's user agent: "Firefox on Linux", "Safari on iPhone". */
@@ -128,6 +131,8 @@ export function SecurityPage() {
         )}
       </section>
 
+      <PasskeysPanel onChange={load} />
+
       <form className="panel" aria-labelledby="s-pass" onSubmit={change}>
         <h2 id="s-pass" className="panel__title">Change your password</h2>
         <div className="field">
@@ -152,9 +157,9 @@ export function SecurityPage() {
         <h2 id="s-devices" className="panel__title">Signed-in devices</h2>
         <p className="muted panel__hint">Each phone, computer and browser signs in once. After that, Write, Type and the rest open signed in.</p>
         {devices === null ? (
-          <Loader size={28} label="Loading devices" />
+          <Skeleton lines={3} avatar label="Loading devices" />
         ) : (
-          <ul className="device-list">
+          <ul className="device-list stagger">
             {devices.map((d) => (
               <li key={d.id} className="device-row">
                 {/iPhone|Android|iPad/.test(d.userAgent ?? '') ? <Smartphone size={20} strokeWidth={1.75} /> : <Laptop size={20} strokeWidth={1.75} />}
@@ -200,11 +205,11 @@ export function SecurityPage() {
       <section className="panel" aria-labelledby="s-activity">
         <h2 id="s-activity" className="panel__title">Recent activity</h2>
         {activity === null ? (
-          <Loader size={28} label="Loading activity" />
+          <Skeleton lines={4} label="Loading activity" />
         ) : activity.length === 0 ? (
           <p className="muted panel__hint">Nothing yet.</p>
         ) : (
-          <ul className="activity-list">
+          <ul className="activity-list stagger">
             {activity.map((a, i) => (
               <li key={i} className="activity-row">
                 <span>{ACTIONS[a.action] ?? a.action}</span>

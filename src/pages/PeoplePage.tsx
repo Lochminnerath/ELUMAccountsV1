@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react';
+import { Skeleton } from '../components/Skeleton';
 import { RemovePersonIcon } from '../components/icons/ElumIcons';
 import { InviteIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useState } from 'react';
@@ -6,7 +7,6 @@ import { api, errorMessage, type Circle, type Person } from '../api';
 import { useAuth } from '../auth/AuthProvider';
 import { Avatar } from '../components/Avatar';
 import { AccountMark } from '../components/Brand';
-import { Loader } from '../components/Loader';
 import { Menu } from '../components/Menu';
 import { useToast } from '../components/Toast';
 import './pages.css';
@@ -132,7 +132,7 @@ export function PeoplePage() {
 
       {error && <p className="form-error">{error}</p>}
       {people === null ? (
-        <Loader size={32} label="Loading people" />
+        <Skeleton lines={4} avatar label="Loading people" />
       ) : people.length === 0 ? (
         <div className="empty-state">
           <AccountMark size={64} />

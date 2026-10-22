@@ -64,7 +64,7 @@ export class SupabaseAccountApi implements AccountApi {
   }
 
   async signInWithPasskey(options: { autofill?: boolean; email?: string } = {}): Promise<Session> {
-    const start = await this.passkeyCall<{ challengeId: string; options: PublicKeyCredentialRequestOptionsJSON }>({ action: 'login-options', email: options.email });
+    const start = await this.passkeyCall<{ challengeId: string; options: PublicKeyCredentialRequestOptionsJSON }>({ action: 'login-options' });
     const response = await passkeyCeremony(() => startAuthentication({ optionsJSON: start.options, useBrowserAutofill: !!options.autofill }));
     const { tokenHash } = await this.passkeyCall<{ tokenHash: string }>({ action: 'login-verify', challengeId: start.challengeId, response });
     const { data, error } = await this.sb.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' });

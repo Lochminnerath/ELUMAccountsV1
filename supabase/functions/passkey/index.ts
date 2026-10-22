@@ -2,7 +2,7 @@
 //
 //   POST { action: 'register-options' }                       (signed in) → { challengeId, options }
 //   POST { action: 'register-verify', challengeId, response }  (signed in) → { id }
-//   POST { action: 'login-options', email? }                              → { challengeId, options }
+//   POST { action: 'login-options' }                                      → { challengeId, options }
 //   POST { action: 'login-verify', challengeId, response }                → { tokenHash }
 //
 // The browser trades tokenHash for a session (supabase.auth.verifyOtp, type magiclink). That
@@ -75,12 +75,8 @@ Deno.serve(async (req) => {
     if (limit.data !== true) return fail('rate_limited', 'Too many tries. Wait a few minutes and try again.');
 
     if (body.action === 'login-options') {
-      let allow: Credential[] = [];
-      if (typeof body.email === 'string' && body.email.includes('@') && body.email.length <= 254) {
-        const { data } = await db.rpc('elum_passkey_credentials', { p_account: null, p_email: body.email });
-        allow = (data as Credential[] | null) ?? [];
-      }
-      const options = await generateAuthenticationOptions({ rpID: site.rpId, userVerification: 'preferred', allowCredentials: allow });
+      // No email hint: listing an address's passkeys would tell anyone whether it has an account.
+      const options = await generateAuthenticationOptions({ rpID: site.rpId, userVerification: 'preferred', allowCredentials: [] });
       const { data: id, error } = await db.rpc('elum_passkey_challenge', { p_kind: 'login', p_account: null, p_challenge: options.challenge, p_rp_id: site.rpId });
       if (error) return fromDbError(error);
       return ok({ challengeId: id, options });

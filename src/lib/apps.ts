@@ -11,7 +11,7 @@ export const APPS = {
   browse: { name: 'Browse', url: clean(env.VITE_ELUM_BROWSE_URL, 'https://elumbrowse.netlify.app'), note: 'Search the web' },
   make: { name: 'Make', url: clean(env.VITE_ELUM_MAKE_URL, 'https://elummake.netlify.app'), note: 'Slides and posts' },
   store: { name: 'Store', url: clean(env.VITE_ELUM_STORE_URL, 'https://elumstore.netlify.app'), note: 'Apps and more' },
-  inquire: { name: 'Inquire', url: clean(env.VITE_ELUM_INQUIRE_URL, 'https://inquire.elum.services'), note: 'Forms' },
+  inquire: { name: 'Inquire', url: clean(env.VITE_ELUM_INQUIRE_URL, 'https://eluminquire.netlify.app'), note: 'Forms' },
 } as const;
 
 /** The ELUM home, the public front door. It is not an app you sign in to, so it opens plainly. */

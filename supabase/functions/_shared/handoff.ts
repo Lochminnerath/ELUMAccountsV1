@@ -7,7 +7,7 @@
  */
 
 /** The ELUM apps that may receive a sign-in, as origins. Configured with ELUM_APP_ORIGINS. */
-export const DEFAULT_APP_ORIGINS = ['https://elumwrite.netlify.app', 'https://elumtype.netlify.app', 'https://elummake.netlify.app', 'https://elumbrowse.netlify.app', 'https://elumstore.netlify.app', 'https://elumaccounts.netlify.app'];
+export const DEFAULT_APP_ORIGINS = ['https://elumwrite.netlify.app', 'https://elumtype.netlify.app', 'https://elummake.netlify.app', 'https://elumbrowse.netlify.app', 'https://elumstore.netlify.app', 'https://elumaccounts.netlify.app', 'https://eluminquire.netlify.app'];
 
 /** ELUM's own domain: every https site on it is an ELUM app (write.elum.services, ...). */
 export const FAMILY_DOMAIN = 'elum.services';

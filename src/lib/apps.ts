@@ -1,5 +1,5 @@
 /**
- * Where every ELUM app lives. Each is its own site (elum<app>.netlify.app today), so they cannot
+ * Where every ELUM app lives. Each is its own site (<app>byelum.netlify.app), so they cannot
  * share a sign-in cookie; Accounts signs people in to the others with a one-time handoff.
  */
 const env = import.meta.env;
@@ -12,7 +12,18 @@ export const APPS = {
   make: { name: 'Make', url: clean(env.VITE_ELUM_MAKE_URL, 'https://makebyelum.netlify.app'), note: 'Slides and posts' },
   store: { name: 'Store', url: clean(env.VITE_ELUM_STORE_URL, 'https://storebyelum.netlify.app'), note: 'Apps and more' },
   inquire: { name: 'Inquire', url: clean(env.VITE_ELUM_INQUIRE_URL, 'https://inquirebyelum.netlify.app'), note: 'Forms' },
+  tune: { name: 'Tune', url: clean(env.VITE_ELUM_TUNE_URL, 'https://tunebyelum.netlify.app'), note: 'Music' },
 } as const;
+
+/** The apps' old addresses (elum<app>.netlify.app), still recognised while the sites are renamed. */
+const PREVIOUS: Record<string, AppId> = {
+  'https://elumwrite.netlify.app': 'write',
+  'https://elumtype.netlify.app': 'type',
+  'https://elumbrowse.netlify.app': 'browse',
+  'https://elummake.netlify.app': 'make',
+  'https://elumstore.netlify.app': 'store',
+  'https://eluminquire.netlify.app': 'inquire',
+};
 
 /** The ELUM home, the public front door. It is not an app you sign in to, so it opens plainly. */
 export const HOME_URL = clean(env.VITE_ELUM_HOME_URL, 'https://elum.netlify.app');
@@ -23,6 +34,8 @@ export function appFor(to: string): { id: AppId; name: string } | null {
   try {
     const origin = new URL(to).origin;
     for (const [id, app] of Object.entries(APPS)) if (app.url && new URL(app.url).origin === origin) return { id: id as AppId, name: app.name };
+    const old = PREVIOUS[origin];
+    if (old) return { id: old, name: APPS[old].name };
   } catch {
     // Not a URL.
   }

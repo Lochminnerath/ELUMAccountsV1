@@ -16,7 +16,7 @@ insert into auth.sessions (id, user_id, user_agent, ip) values
 
 -- ------------------------------------------------------------ making one
 set role service_role;
-select set_config('test.challenge', elum_passkey_challenge('register', :'ada', 'abc', 'elumaccounts.netlify.app')::text, false);
+select set_config('test.challenge', elum_passkey_challenge('register', :'ada', 'abc', 'accountsbyelum.netlify.app')::text, false);
 select expect(elum_passkey_take_challenge(current_setting('test.challenge')::uuid, 'login') is null, 'a challenge only works for its own kind');
 select expect((elum_passkey_take_challenge(current_setting('test.challenge')::uuid, 'register') ->> 'challenge') = 'abc', 'the challenge comes back');
 select expect(elum_passkey_take_challenge(current_setting('test.challenge')::uuid, 'register') is null, 'but only once');

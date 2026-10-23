@@ -1,6 +1,6 @@
 // Gives a signed-in person a one-time sign-in for another ELUM app (see _shared/handoff.ts).
 //
-//   POST { to: "https://elumwrite.netlify.app/auth/handoff", next: "/d/<id>" } with the session
+//   POST { to: "https://writebyelum.netlify.app/auth/handoff", next: "/d/<id>" } with the session
 //   → { data: { url } }: send the browser there. The app trades the token for its own session.
 //
 // Secrets: ELUM_APP_ORIGINS, comma-separated origins allowed to receive a sign-in (defaults to the

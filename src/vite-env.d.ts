@@ -13,7 +13,7 @@ interface ImportMetaEnv {
   readonly VITE_ELUM_TYPE_URL?: string;
   readonly VITE_ELUM_MAKE_URL?: string;
   readonly VITE_ELUM_BROWSE_URL?: string;
-  /** Where ELUM Store is hosted. Defaults to https://elumstore.netlify.app. */
+  /** Where ELUM Store is hosted. Defaults to https://storebyelum.netlify.app. */
   readonly VITE_ELUM_STORE_URL?: string;
 }
 

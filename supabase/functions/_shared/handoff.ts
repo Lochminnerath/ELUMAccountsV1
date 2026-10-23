@@ -6,8 +6,11 @@
  * it for its own session (supabase.auth.verifyOtp). Plain TypeScript, tested with vitest.
  */
 
-/** The ELUM apps that may receive a sign-in, as origins. Configured with ELUM_APP_ORIGINS. */
-export const DEFAULT_APP_ORIGINS = ['https://elumwrite.netlify.app', 'https://elumtype.netlify.app', 'https://elummake.netlify.app', 'https://elumbrowse.netlify.app', 'https://elumstore.netlify.app', 'https://elumaccounts.netlify.app', 'https://eluminquire.netlify.app'];
+/** The ELUM apps that may receive a sign-in, as origins. ELUM_APP_ORIGINS adds more. */
+export const DEFAULT_APP_ORIGINS = ['https://writebyelum.netlify.app', 'https://typebyelum.netlify.app', 'https://makebyelum.netlify.app', 'https://browsebyelum.netlify.app', 'https://storebyelum.netlify.app', 'https://accountsbyelum.netlify.app', 'https://inquirebyelum.netlify.app'];
+
+/** The sites' old addresses, still trusted while each Netlify site is renamed to <name>byelum. */
+export const PREVIOUS_APP_ORIGINS = ['https://elumwrite.netlify.app', 'https://elumtype.netlify.app', 'https://elummake.netlify.app', 'https://elumbrowse.netlify.app', 'https://elumstore.netlify.app', 'https://elumaccounts.netlify.app', 'https://eluminquire.netlify.app'];
 
 /** ELUM's own domain: every https site on it is an ELUM app (write.elum.services, ...). */
 export const FAMILY_DOMAIN = 'elum.services';
@@ -21,7 +24,8 @@ export function parseOrigins(value: string | undefined): string[] {
     .split(',')
     .map((s) => s.trim().replace(/\/+$/, ''))
     .filter(Boolean);
-  return list.length ? list : DEFAULT_APP_ORIGINS;
+  // The built-in apps always count; the setting only adds to them, so a new app is never left out.
+  return [...new Set([...DEFAULT_APP_ORIGINS, ...PREVIOUS_APP_ORIGINS, ...list])];
 }
 
 /**

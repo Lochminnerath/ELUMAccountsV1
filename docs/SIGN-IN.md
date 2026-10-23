@@ -2,8 +2,8 @@
 
 ## The problem
 
-Write, Type and Accounts are separate sites: `elumwrite.netlify.app`, `elumtype.netlify.app` and
-`elumaccounts.netlify.app`. A browser keeps each site's sign-in separately, and `netlify.app` is a
+Write, Type and Accounts are separate sites: `writebyelum.netlify.app`, `typebyelum.netlify.app` and
+`accountsbyelum.netlify.app`. A browser keeps each site's sign-in separately, and `netlify.app` is a
 shared hosting domain, so these sites can never share a cookie. (Shared cookies only work when the apps
 are subdomains of a domain you own, such as `write.elum.services` and `type.elum.services`.)
 
@@ -17,12 +17,12 @@ Accounts is where people sign in. When an app has no session, it sends people th
 them back signed in:
 
 ```
-1. Open https://elumwrite.netlify.app/d/9f1c…           (a document link from an email or Type)
-2. Write has no session → https://elumaccounts.netlify.app/continue
-        ?to=https://elumwrite.netlify.app/auth/handoff&next=/d/9f1c…
+1. Open https://writebyelum.netlify.app/d/9f1c…           (a document link from an email or Type)
+2. Write has no session → https://accountsbyelum.netlify.app/continue
+        ?to=https://writebyelum.netlify.app/auth/handoff&next=/d/9f1c…
 3. Accounts: already signed in? (If not, sign in once.)
    It asks the account-handoff function for a one-time sign-in token for Write.
-4. Back to https://elumwrite.netlify.app/auth/handoff#token_hash=…&next=/d/9f1c…
+4. Back to https://writebyelum.netlify.app/auth/handoff#token_hash=…&next=/d/9f1c…
 5. Write trades the token for its own session (supabase.auth.verifyOtp), removes it from the
    address bar, and opens /d/9f1c… If the person has access, the document opens. If not, Write
    says whose permission they need.
@@ -64,7 +64,7 @@ fully shared without any handoff.
 1. Deploy `account-handoff` (keep JWT verification on). Set `ELUM_APP_ORIGINS` if the sites are not
    the netlify.app defaults (Write, Type, Make, Browse, Store and Accounts).
 2. In every app (Write, Type, Accounts) set the same `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-3. Every app signs in through `https://elumaccounts.netlify.app` unless its `VITE_ELUM_ACCOUNT_URL`
+3. Every app signs in through `https://accountsbyelum.netlify.app` unless its `VITE_ELUM_ACCOUNT_URL`
    names another ELUM Account. Set it to `off` for an app's own sign-in pages only. Away from the
    apps' own sites (Netlify deploy previews, for example) the apps always use their own sign-in
    pages, because `account-handoff` only sends sign-ins to the sites it knows.
@@ -91,10 +91,10 @@ more than a password. After a password or email-link sign-in, people without a p
 once per sign-in whether they want to make one; Security lists, renames and removes them.
 
 **A passkey belongs to the site address it was made on.** Passkeys made on
-`elumaccounts.netlify.app` work only there. When ELUM Account moves to `account.elum.services`,
+`accountsbyelum.netlify.app` work only there. When ELUM Account moves to `account.elum.services`,
 everyone makes new passkeys there from Security. The old ones stay listed and still count as having a
 passkey, so remove them (or clear `elum.passkeys` at the move) to bring the "Sign in faster" suggestion back. The passkey function accepts
-`https://elumaccounts.netlify.app`, `https://account.elum.services` and `http://localhost`.
+`https://accountsbyelum.netlify.app`, `https://account.elum.services` and `http://localhost`.
 
 Deploy it with `supabase functions deploy passkey --no-verify-jwt` (signing in has no session yet;
 making a passkey checks the session itself).

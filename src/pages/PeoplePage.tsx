@@ -67,7 +67,7 @@ export function PeoplePage() {
       setFound((list) => list.map((x) => (x.id === p.id ? { ...x, circle } : x)));
       await Promise.all([load(), refresh()]);
     } catch (e) {
-      toast(errorMessage(e), { tone: 'error' });
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'people-failed' });
     }
   };
 

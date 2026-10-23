@@ -6,7 +6,9 @@ import { handleProblem } from '../api/validation';
 import { useAuth } from '../auth/AuthProvider';
 import { safeLocalPath } from '../auth/guards';
 import { AccountLockup } from '../components/Brand';
+import { SupportLink, TroubleshootingLink } from '../components/SupportLink';
 import { appFor } from '../lib/apps';
+import { isSupportable } from '../lib/support';
 import { Loader } from '../components/Loader';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { passkeyAutofillSupported, passkeysSupported } from '../passkeys/passkeys';
@@ -39,7 +41,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [handleState, setHandleState] = useState<HandleState>({ kind: 'idle' });
-  const [error, setError] = useState<{ message: string; field?: Field; notice?: boolean } | null>(null);
+  const [error, setError] = useState<{ message: string; field?: Field; notice?: boolean; passkey?: boolean; cause?: unknown } | null>(null);
   const isSignUp = mode === 'signup';
   const carry = back && to ? `?${new URLSearchParams({ to, next }).toString()}` : next !== '/' ? `?next=${encodeURIComponent(next)}` : '';
   const switchHref = `${isSignUp ? '/signin' : '/signup'}${carry}`;
@@ -83,7 +85,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
       if (!ok || !live) return;
       signInWithPasskey({ autofill: true }).then(
         () => live && done(),
-        (err) => live && !isApiError(err, 'cancelled') && setError({ message: errorMessage(err) }),
+        (err) => live && !isApiError(err, 'cancelled') && setError({ message: errorMessage(err), passkey: true, cause: err }),
       );
     });
     return () => {
@@ -99,7 +101,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
       await signInWithPasskey({ email: login.includes('@') ? login.trim() : undefined });
       done();
     } catch (err) {
-      if (!isApiError(err, 'cancelled')) setError({ message: errorMessage(err) });
+      if (!isApiError(err, 'cancelled')) setError({ message: errorMessage(err), passkey: true, cause: err });
       setBusy(false);
     }
   };
@@ -119,7 +121,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
       done();
     } catch (err) {
       const field = isApiError(err) ? (err.details?.field as Field | undefined) : undefined;
-      setError({ message: errorMessage(err), field, notice: isApiError(err, 'confirm_email') });
+      setError({ message: errorMessage(err), field, notice: isApiError(err, 'confirm_email'), cause: err });
       setBusy(false);
     }
   };
@@ -294,6 +296,12 @@ export function AuthPage({ mode }: { mode: Mode }) {
             <p className={error.notice ? 'auth__notice' : 'auth__error'} role={error.notice ? 'status' : 'alert'}>
               {error.message}
             </p>
+          )}
+          {error && !error.notice && !error.field && (error.passkey || isSupportable(error.cause)) && (
+            <div className="support-links support-links--start">
+              {error.passkey && <TroubleshootingLink topic="passkeys">Passkeys</TroubleshootingLink>}
+              <SupportLink app="account" code={error.passkey ? 'passkey-failed' : 'signin-failed'} message={error.message} />
+            </div>
           )}
 
           <button type="submit" className="elum-btn elum-btn--primary elum-btn--block auth__submit" disabled={busy}>

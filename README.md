@@ -1,7 +1,7 @@
 # ELUM Account
 
 One place to manage your ELUM account, for Write, Type and every ELUM app. Hosted at
-`https://elumaccounts.netlify.app` (later `account.elum.services`).
+`https://accountsbyelum.netlify.app` (later `account.elum.services`).
 
 - **Profile:** picture (cropped to a square in your browser), name, colour, language and time zone.
 - **People:** put people in Friends, Family, Work or Blocked. Everyone else is Unknown.

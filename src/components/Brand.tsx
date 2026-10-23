@@ -20,7 +20,7 @@ export function AccountMark({ size = 32 }: { size?: number }) {
   );
 }
 
-export type Product = 'elum' | 'write' | 'type' | 'browse' | 'make' | 'store' | 'account';
+export type Product = 'elum' | 'write' | 'type' | 'browse' | 'make' | 'store' | 'account' | 'inquire';
 
 /** Monoline product glyphs (handoff Appendix C, plus Account), coloured by CSS. */
 const GLYPHS: Record<Product, React.ReactNode> = {
@@ -70,6 +70,14 @@ const GLYPHS: Record<Product, React.ReactNode> = {
       <circle cx="12" cy="8" r="4.25" />
       <circle cx="12" cy="16.5" r="6" />
       <path d="M9.2 11.2A6 6 0 0 1 14.8 11.2A4.25 4.25 0 0 1 9.2 11.2Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  inquire: (
+    <>
+      <circle cx="12" cy="8.7" r="4.6" />
+      <circle cx="8.62" cy="14.55" r="4.6" />
+      <circle cx="15.38" cy="14.55" r="4.6" />
+      <circle cx="12" cy="12.6" r="1.3" fill="currentColor" stroke="none" />
     </>
   ),
 };

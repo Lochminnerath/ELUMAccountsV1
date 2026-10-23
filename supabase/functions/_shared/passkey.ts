@@ -3,7 +3,11 @@
  * the hostname), so only ELUM Account's own addresses are allowed. Plain TypeScript, tested with vitest.
  */
 
-export const PASSKEY_ORIGINS = ['https://elumaccounts.netlify.app', 'https://account.elum.services'];
+// elumaccounts.netlify.app is Account's old address, kept while the site is renamed.
+export const PASSKEY_ORIGINS = ['https://accountsbyelum.netlify.app', 'https://account.elum.services', 'https://elumaccounts.netlify.app'];
+
+/** Netlify previews of ELUM Account (deploy-preview-6--accountsbyelum.netlify.app). Their passkeys are their own. */
+export const isAccountPreview = (url: URL) => url.protocol === 'https:' && /^[a-z0-9-]+--(accountsbyelum|elumaccounts)\.netlify\.app$/.test(url.hostname);
 
 /** The site a passkey request comes from, if it is ELUM Account: its origin and hostname (the rpID). */
 export function passkeySite(origin: string | null | undefined, allowed: string[] = PASSKEY_ORIGINS): { origin: string; rpId: string } | null {
@@ -15,7 +19,7 @@ export function passkeySite(origin: string | null | undefined, allowed: string[]
   }
   if (url.origin !== origin) return null;
   const local = url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname === '127.0.0.1');
-  if (!local && (url.protocol !== 'https:' || !allowed.includes(url.origin))) return null;
+  if (!local && (url.protocol !== 'https:' || !(allowed.includes(url.origin) || isAccountPreview(url)))) return null;
   return { origin: url.origin, rpId: url.hostname };
 }
 

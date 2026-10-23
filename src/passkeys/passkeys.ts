@@ -1,16 +1,18 @@
 /** Passkeys in this browser, and when to suggest making one. */
 
 /**
- * Where passkeys work: ELUM Account's own addresses and localhost, as the passkey function allows
- * (supabase/functions/_shared/passkey.ts). A passkey belongs to the address it was made on, so
- * deploy previews never offer one.
+ * Where passkeys work: ELUM Account's own addresses, its Netlify previews and localhost, as the
+ * passkey function allows (supabase/functions/_shared/passkey.ts). A passkey belongs to the address
+ * it was made on, so one made on a preview only works on that preview.
  */
-export const PASSKEY_ORIGINS = ['https://elumaccounts.netlify.app', 'https://account.elum.services'];
+// elumaccounts.netlify.app is Account's old address, kept while the site is renamed.
+export const PASSKEY_ORIGINS = ['https://accountsbyelum.netlify.app', 'https://account.elum.services', 'https://elumaccounts.netlify.app'];
 
 export function passkeySiteAllowed(origin: string): boolean {
   try {
     const url = new URL(origin);
     if (url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname === '127.0.0.1')) return true;
+    if (url.protocol === 'https:' && /^[a-z0-9-]+--(accountsbyelum|elumaccounts)\.netlify\.app$/.test(url.hostname)) return true;
     return PASSKEY_ORIGINS.includes(url.origin);
   } catch {
     return false;

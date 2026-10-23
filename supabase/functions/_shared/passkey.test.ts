@@ -3,16 +3,16 @@ import { clientIp, passkeyName, passkeySite } from './passkey';
 
 describe('passkey sites', () => {
   it('allow only ELUM Account, with its hostname as the passkey site', () => {
-    expect(passkeySite('https://elumaccounts.netlify.app')).toEqual({ origin: 'https://elumaccounts.netlify.app', rpId: 'elumaccounts.netlify.app' });
+    expect(passkeySite('https://accountsbyelum.netlify.app')).toEqual({ origin: 'https://accountsbyelum.netlify.app', rpId: 'accountsbyelum.netlify.app' });
     expect(passkeySite('https://account.elum.services')?.rpId).toBe('account.elum.services');
     expect(passkeySite('http://localhost:5175')?.rpId).toBe('localhost');
   });
   it('refuse everything else', () => {
-    expect(passkeySite('https://elumwrite.netlify.app')).toBeNull();
+    expect(passkeySite('https://writebyelum.netlify.app')).toBeNull();
     expect(passkeySite('https://write.elum.services')).toBeNull();
-    expect(passkeySite('http://elumaccounts.netlify.app')).toBeNull();
-    expect(passkeySite('https://elumaccounts.netlify.app.evil.example')).toBeNull();
-    expect(passkeySite('https://elumaccounts.netlify.app/path')).toBeNull();
+    expect(passkeySite('http://accountsbyelum.netlify.app')).toBeNull();
+    expect(passkeySite('https://accountsbyelum.netlify.app.evil.example')).toBeNull();
+    expect(passkeySite('https://accountsbyelum.netlify.app/path')).toBeNull();
     expect(passkeySite(null)).toBeNull();
     expect(passkeySite('null')).toBeNull();
   });

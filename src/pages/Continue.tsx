@@ -4,11 +4,14 @@ import { api, errorMessage } from '../api';
 import { useAuth } from '../auth/AuthProvider';
 import { AccountMark } from '../components/Brand';
 import { FullPageLoader } from '../components/Loader';
+import { SupportLinks } from '../components/SupportLink';
 import { appFor } from '../lib/apps';
 
 /**
  * /continue?to=<app>/auth/handoff&next=<path>: an ELUM app with no session sends people here.
  * Signed in already, they go straight back, signed in there too. Otherwise they sign in first.
+ * With quiet=1 (an app checking on its own, not someone pressing Sign in) a signed-out visit goes
+ * straight back to the app instead of showing the sign-in page.
  */
 export function ContinuePage() {
   const [params] = useSearchParams();
@@ -16,20 +19,29 @@ export function ContinuePage() {
   const navigate = useNavigate();
   const to = params.get('to') ?? '';
   const next = params.get('next') ?? '/';
+  const quiet = params.get('quiet') === '1';
   const app = appFor(to);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
+    if (status === 'signed-out' && quiet && app) {
+      window.location.replace(new URL(next.startsWith('/') && !next.startsWith('//') ? next : '/', new URL(to).origin).toString());
+      return;
+    }
     if (status === 'signed-out') {
       navigate(`/signin?${new URLSearchParams({ to, next }).toString()}`, { replace: true });
       return;
     }
     api.handoff(to, next).then(
       (url) => window.location.replace(url),
-      (e) => setError(errorMessage(e)),
+      (e) => {
+        // A quiet check never strands anyone here: back to the app, still signed out there.
+        if (quiet && app) window.location.replace(new URL(next.startsWith('/') && !next.startsWith('//') ? next : '/', new URL(to).origin).toString());
+        else setError(errorMessage(e));
+      },
     );
-  }, [status, to, next, navigate]);
+  }, [status, to, next, quiet, app, navigate]);
 
   if (!error) return <FullPageLoader label={app ? `Signing you in to ${app.name}` : 'Signing you in'} />;
   return (
@@ -40,6 +52,7 @@ export function ContinuePage() {
       <Link to="/" className="elum-btn elum-btn--primary">
         Go to your account
       </Link>
+      <SupportLinks app="account" code="handoff-failed" message={error} />
     </div>
   );
 }
@@ -80,6 +93,7 @@ export function HandoffPage() {
       <Link to="/signin" className="elum-btn elum-btn--primary">
         Sign in
       </Link>
+      <SupportLinks app="account" code="signin-failed" message={error} />
     </div>
   );
 }

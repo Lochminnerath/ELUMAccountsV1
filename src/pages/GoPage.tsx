@@ -4,6 +4,7 @@ import { api, errorMessage } from '../api';
 import { AccountMark } from '../components/Brand';
 import { FullPageLoader } from '../components/Loader';
 import { APPS, type AppId } from '../lib/apps';
+import { SupportLinks } from '../components/SupportLink';
 
 /** /go/<app>: opens another ELUM app, already signed in. */
 export function GoPage() {
@@ -36,6 +37,7 @@ export function GoPage() {
       <Link to="/" className="elum-btn elum-btn--primary">
         Back to your account
       </Link>
+      <SupportLinks app="account" code="open-failed" message={error} />
     </div>
   );
 }

@@ -14,7 +14,7 @@ export function NotificationsPage() {
   const outside = account.accountType === 'type' ? 'In your Type inbox' : `By email to ${account.email}`;
 
   useEffect(() => {
-    api.notificationSettings().then(setList, (e) => toast(errorMessage(e), { tone: 'error' }));
+    api.notificationSettings().then(setList, (e) => toast(errorMessage(e), { tone: 'error', cause: e, code: 'notifications-failed' }));
   }, [toast]);
 
   const set = async (n: NotificationSetting, change: Partial<Pick<NotificationSetting, 'inApp' | 'outside'>>) => {
@@ -24,7 +24,7 @@ export function NotificationsPage() {
       await api.setNotification(n.type, next.inApp, next.outside);
     } catch (e) {
       setList((l) => l?.map((x) => (x.type === n.type ? n : x)) ?? null);
-      toast(errorMessage(e), { tone: 'error' });
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'notifications-failed' });
     }
   };
 

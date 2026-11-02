@@ -1,3 +1,4 @@
+import type { ServiceState } from '../lib/platform';
 import type { Account, Activity, Circle, Device, NotificationSetting, Person, Privacy, ProfileChange, Session, SignInInput, SignUpInput, Preferences, SecuritySettings, Passkey } from './types';
 
 /**
@@ -70,4 +71,9 @@ export interface AccountApi {
   handoff(to: string, next: string): Promise<string>;
   /** Trades a handoff token (from another ELUM app) for a session on this site. */
   completeHandoff(tokenHash: string): Promise<Session>;
+
+  /** The ELUM apps this account has added (in ELUM Store). Null when signed out, or unknown. */
+  elumApps?(): Promise<string[] | null>;
+  /** This app as the ELUM Console set it: mode, message, open incidents and flags. */
+  serviceState?(service: string): Promise<ServiceState | null>;
 }

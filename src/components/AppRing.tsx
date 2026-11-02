@@ -13,6 +13,10 @@ export const RING_APPS = [
   { id: 'make', name: 'Make', color: '#ec7fa9' },
   { id: 'browse', name: 'Browse', color: '#9b84ee' },
   { id: 'store', name: 'Store', color: '#e9b949' },
+  { id: 'inquire', name: 'Inquire', color: '#f06a5f' },
+  { id: 'tune', name: 'Tune', color: '#48bfe3' },
+  { id: 'code', name: 'Code', color: '#d27fe0' },
+  { id: 'capture', name: 'Capture', color: '#5ec46f' },
 ] as const;
 
 /** The gap between arcs, in degrees. */
@@ -32,7 +36,7 @@ function point(r: number, deg: number): string {
   return `${(r * Math.cos(rad)).toFixed(2)} ${(r * Math.sin(rad)).toFixed(2)}`;
 }
 
-/** The five arcs around a circle of radius `r`, each marked on when that app is in `has`. */
+/** The arcs around a circle of radius `r`, each marked on when that app is in `has`. */
 export function ringArcs(has: ReadonlySet<string>, r: number): Arc[] {
   const span = 360 / RING_APPS.length;
   return RING_APPS.map((app, i) => {

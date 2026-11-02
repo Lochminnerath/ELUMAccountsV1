@@ -13,6 +13,8 @@ export const APPS = {
   store: { name: 'Store', url: clean(env.VITE_ELUM_STORE_URL, 'https://storebyelum.netlify.app'), note: 'Apps and more' },
   inquire: { name: 'Inquire', url: clean(env.VITE_ELUM_INQUIRE_URL, 'https://inquirebyelum.netlify.app'), note: 'Forms' },
   tune: { name: 'Tune', url: clean(env.VITE_ELUM_TUNE_URL, 'https://tunebyelum.netlify.app'), note: 'Music' },
+  code: { name: 'Code', url: clean(env.VITE_ELUM_CODE_URL, 'https://codebyelum.netlify.app'), note: 'Coding' },
+  capture: { name: 'Capture', url: clean(env.VITE_ELUM_CAPTURE_URL, 'https://capturebyelum.netlify.app'), note: 'Photos' },
 } as const;
 
 /** The apps' old addresses (elum<app>.netlify.app), still recognised while the sites are renamed. */

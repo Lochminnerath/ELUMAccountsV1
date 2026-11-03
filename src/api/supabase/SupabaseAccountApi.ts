@@ -1,3 +1,4 @@
+import type { ServiceState } from '../../lib/platform';
 import { startAuthentication, startRegistration, type PublicKeyCredentialCreationOptionsJSON, type PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
 import { createClient, type Session as AuthSession, type SupabaseClient } from '@supabase/supabase-js';
 import type { AccountApi } from '../client';
@@ -366,6 +367,21 @@ export class SupabaseAccountApi implements AccountApi {
     // Older databases lack the function; the account then loads as before.
     await this.sb.rpc('elum_ensure_profile').then(() => undefined, () => undefined);
     return { account: await this.account() };
+  }
+
+  // ------------------------------------------------------------------- the ELUM platform
+
+  async elumApps(): Promise<string[] | null> {
+    const { data: session } = await this.sb.auth.getSession();
+    if (!session.session) return null;
+    const { data, error } = await this.sb.rpc('elum_me');
+    if (error || !data) return null;
+    return ((data as { services?: { id: string; joined: boolean }[] }).services ?? []).filter((s) => s.joined).map((s) => s.id);
+  }
+
+  async serviceState(service: string): Promise<ServiceState | null> {
+    const { data, error } = await this.sb.rpc('elum_service_state', { p_service: service });
+    return error || !data ? null : (data as ServiceState);
   }
 }
 

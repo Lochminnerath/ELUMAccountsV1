@@ -4,7 +4,7 @@ import { RING_APPS, ringArcs, ringLabel } from './AppRing';
 describe('the app ring', () => {
   it('has one arc per ELUM app, in brand order, lit only for the apps in the account', () => {
     const arcs = ringArcs(new Set(['write', 'make', 'store']), 50);
-    expect(arcs.map((a) => a.id)).toEqual(['write', 'type', 'make', 'browse', 'store']);
+    expect(arcs.map((a) => a.id)).toEqual(['write', 'type', 'make', 'browse', 'store', 'inquire', 'tune', 'code', 'capture']);
     expect(arcs.filter((a) => a.on).map((a) => a.id)).toEqual(['write', 'make', 'store']);
     expect(arcs.find((a) => a.id === 'make')?.color).toBe('#ec7fa9');
   });
@@ -21,6 +21,6 @@ describe('the app ring', () => {
   it('says which apps are in the account', () => {
     expect(ringLabel(new Set())).toBe('No ELUM apps added yet');
     expect(ringLabel(new Set(RING_APPS.map((a) => a.id)))).toBe('Every ELUM app is in your account');
-    expect(ringLabel(new Set(['type', 'browse']))).toBe('In your account: Type, Browse. Not yet: Write, Make, Store.');
+    expect(ringLabel(new Set(['type', 'browse']))).toBe('In your account: Type, Browse. Not yet: Write, Make, Store, Inquire, Tune, Code, Capture.');
   });
 });

@@ -4,7 +4,7 @@
  */
 
 // elumaccounts.netlify.app is Account's old address, kept while the site is renamed.
-export const PASSKEY_ORIGINS = ['https://accountsbyelum.netlify.app', 'https://account.elum.services', 'https://elumaccounts.netlify.app'];
+export const PASSKEY_ORIGINS = ['https://accountsbyelum.netlify.app', 'https://account.elum.space', 'https://elumaccounts.netlify.app'];
 
 /** Netlify previews of ELUM Account (deploy-preview-6--accountsbyelum.netlify.app). Their passkeys are their own. */
 export const isAccountPreview = (url: URL) => url.protocol === 'https:' && /^[a-z0-9-]+--(accountsbyelum|elumaccounts)\.netlify\.app$/.test(url.hostname);

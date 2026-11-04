@@ -6,7 +6,7 @@
  * it was made on, so one made on a preview only works on that preview.
  */
 // elumaccounts.netlify.app is Account's old address, kept while the site is renamed.
-export const PASSKEY_ORIGINS = ['https://accountsbyelum.netlify.app', 'https://account.elum.services', 'https://elumaccounts.netlify.app'];
+export const PASSKEY_ORIGINS = ['https://accountsbyelum.netlify.app', 'https://account.elum.space', 'https://elumaccounts.netlify.app'];
 
 export function passkeySiteAllowed(origin: string): boolean {
   try {

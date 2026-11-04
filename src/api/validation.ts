@@ -70,7 +70,7 @@ export function parseAddresses(input: string): { addresses: Address[]; rest: str
   return { addresses, rest };
 }
 
-/** "Rae Reed <rae@type.elum.services>" for headers and copy. */
+/** "Rae Reed <rae@elum.space>" for headers and copy. */
 export function formatAddress(a: Address): string {
   return a.name ? `${a.name} <${a.address}>` : a.address;
 }
@@ -93,7 +93,7 @@ export function forwardSubject(subject: string | null): string {
 }
 
 /** `next` may be a path on this site or an https URL on the ELUM family domain (handoff 3.5). */
-export function safeNext(next: string | null, familyDomain = 'elum.services'): string {
+export function safeNext(next: string | null, familyDomain = 'elum.space'): string {
   if (!next) return '/';
   if (next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\')) return next;
   try {

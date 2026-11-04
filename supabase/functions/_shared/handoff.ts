@@ -12,8 +12,8 @@ export const DEFAULT_APP_ORIGINS = ['https://writebyelum.netlify.app', 'https://
 /** The sites' old addresses, still trusted while each Netlify site is renamed to <name>byelum. */
 export const PREVIOUS_APP_ORIGINS = ['https://elumwrite.netlify.app', 'https://elumtype.netlify.app', 'https://elummake.netlify.app', 'https://elumbrowse.netlify.app', 'https://elumstore.netlify.app', 'https://elumaccounts.netlify.app', 'https://eluminquire.netlify.app'];
 
-/** ELUM's own domain: every https site on it is an ELUM app (write.elum.services, ...). */
-export const FAMILY_DOMAIN = 'elum.services';
+/** ELUM's own domain: every https site on it is an ELUM app (write.elum.space, ...). */
+export const FAMILY_DOMAIN = 'elum.space';
 
 function isFamilyHost(url: URL): boolean {
   return url.protocol === 'https:' && (url.hostname === FAMILY_DOMAIN || url.hostname.endsWith(`.${FAMILY_DOMAIN}`));

@@ -33,7 +33,7 @@ describe('LocalAccountApi', () => {
     const api = make();
     await api.signUp({ kind: 'type', handle: 'ada', name: 'Ada', password: 'password1' });
     await expect(api.deleteAccount('nope')).rejects.toMatchObject({ code: 'invalid' });
-    await api.deleteAccount('ada@type.elum.services');
+    await api.deleteAccount('ada@elum.space');
     expect(await api.restoreSession()).toBeNull();
   });
 });

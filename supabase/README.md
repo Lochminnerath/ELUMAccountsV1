@@ -21,7 +21,7 @@ supabase functions deploy account-address
 supabase functions deploy account-delete --no-verify-jwt
 supabase functions deploy passkey --no-verify-jwt
 supabase secrets set ELUM_APP_ORIGINS=https://writebyelum.netlify.app,https://typebyelum.netlify.app,https://accountsbyelum.netlify.app \
-  ACCOUNT_EMAIL_FROM="ELUM <account@elum.services>" APP_URL=https://accountsbyelum.netlify.app CRON_SECRET=<long random>
+  ACCOUNT_EMAIL_FROM="ELUM <account@elum.space>" APP_URL=https://accountsbyelum.netlify.app CRON_SECRET=<long random>
 ```
 
 Remove deleted accounts from Auth once every service has cleaned up (daily):

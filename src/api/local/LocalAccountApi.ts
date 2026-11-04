@@ -76,7 +76,7 @@ export class LocalAccountApi implements AccountApi {
 
   constructor(options: LocalAccountApiOptions = {}) {
     this.storage = options.storage ?? localStorage;
-    this.typeDomain = options.typeDomain ?? 'type.elum.services';
+    this.typeDomain = options.typeDomain ?? 'elum.space';
     this.iterations = options.passwordIterations ?? DEFAULT_ITERATIONS;
   }
 

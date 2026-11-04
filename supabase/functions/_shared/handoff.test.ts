@@ -18,15 +18,15 @@ describe('handoff targets', () => {
       expect(handoffTarget(`https://${app}.netlify.app/auth/handoff`, allowed)?.origin).toBe(`https://${app}.netlify.app`);
     }
   });
-  it('accepts every ELUM app on elum.services, and nothing that only looks like it', () => {
-    expect(handoffTarget('https://type.elum.services/auth/handoff', allowed)?.origin).toBe('https://type.elum.services');
-    expect(handoffTarget('https://write.elum.services/auth/handoff', [])).not.toBeNull();
-    expect(handoffTarget('https://elum.services.evil.example/auth/handoff', allowed)).toBeNull();
-    expect(handoffTarget('https://evilelum.services/auth/handoff', allowed)).toBeNull();
-    expect(handoffTarget('http://type.elum.services/auth/handoff', allowed)).toBeNull();
+  it('accepts every ELUM app on elum.space, and nothing that only looks like it', () => {
+    expect(handoffTarget('https://type.elum.space/auth/handoff', allowed)?.origin).toBe('https://type.elum.space');
+    expect(handoffTarget('https://write.elum.space/auth/handoff', [])).not.toBeNull();
+    expect(handoffTarget('https://elum.space.evil.example/auth/handoff', allowed)).toBeNull();
+    expect(handoffTarget('https://evilelum.space/auth/handoff', allowed)).toBeNull();
+    expect(handoffTarget('http://type.elum.space/auth/handoff', allowed)).toBeNull();
   });
   it('can add sites, including local development, and never drops the built-in apps', () => {
-    const list = parseOrigins('http://localhost:5173/, https://write.elum.services');
+    const list = parseOrigins('http://localhost:5173/, https://write.elum.space');
     expect(handoffTarget('http://localhost:5173/auth/handoff', list)).not.toBeNull();
     expect(handoffTarget('https://writebyelum.netlify.app/auth/handoff', list)).not.toBeNull();
     expect(handoffTarget('https://elsewhere.netlify.app/auth/handoff', list)).toBeNull();

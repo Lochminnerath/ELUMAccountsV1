@@ -4,12 +4,12 @@ import { clientIp, passkeyName, passkeySite } from './passkey';
 describe('passkey sites', () => {
   it('allow only ELUM Account, with its hostname as the passkey site', () => {
     expect(passkeySite('https://accountsbyelum.netlify.app')).toEqual({ origin: 'https://accountsbyelum.netlify.app', rpId: 'accountsbyelum.netlify.app' });
-    expect(passkeySite('https://account.elum.services')?.rpId).toBe('account.elum.services');
+    expect(passkeySite('https://account.elum.space')?.rpId).toBe('account.elum.space');
     expect(passkeySite('http://localhost:5175')?.rpId).toBe('localhost');
   });
   it('refuse everything else', () => {
     expect(passkeySite('https://writebyelum.netlify.app')).toBeNull();
-    expect(passkeySite('https://write.elum.services')).toBeNull();
+    expect(passkeySite('https://write.elum.space')).toBeNull();
     expect(passkeySite('http://accountsbyelum.netlify.app')).toBeNull();
     expect(passkeySite('https://accountsbyelum.netlify.app.evil.example')).toBeNull();
     expect(passkeySite('https://accountsbyelum.netlify.app/path')).toBeNull();

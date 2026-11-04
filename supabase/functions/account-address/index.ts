@@ -3,7 +3,7 @@
 //
 //   POST { address } with the session → { data: { sent: true } }
 //
-// Secrets: BREVO_API_KEY, ACCOUNT_EMAIL_FROM (such as "ELUM <account@elum.services>"), and
+// Secrets: BREVO_API_KEY, ACCOUNT_EMAIL_FROM (such as "ELUM <account@elum.space>"), and
 // APP_URL (where Accounts is hosted, for images in the email).
 
 import { createClient } from 'npm:@supabase/supabase-js@2';

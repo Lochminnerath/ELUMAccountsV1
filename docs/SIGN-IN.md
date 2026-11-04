@@ -5,7 +5,7 @@
 Write, Type and Accounts are separate sites: `writebyelum.netlify.app`, `typebyelum.netlify.app` and
 `accountsbyelum.netlify.app`. A browser keeps each site's sign-in separately, and `netlify.app` is a
 shared hosting domain, so these sites can never share a cookie. (Shared cookies only work when the apps
-are subdomains of a domain you own, such as `write.elum.services` and `type.elum.services`.)
+are subdomains of a domain you own, such as `write.elum.space` and `elum.space`.)
 
 So "signed in" is not something one site can tell another directly. Nothing is stored in local cache
 files; each site's session lives in that site's browser storage, and every session belongs to the same
@@ -91,10 +91,10 @@ more than a password. After a password or email-link sign-in, people without a p
 once per sign-in whether they want to make one; Security lists, renames and removes them.
 
 **A passkey belongs to the site address it was made on.** Passkeys made on
-`accountsbyelum.netlify.app` work only there. When ELUM Account moves to `account.elum.services`,
+`accountsbyelum.netlify.app` work only there. When ELUM Account moves to `account.elum.space`,
 everyone makes new passkeys there from Security. The old ones stay listed and still count as having a
 passkey, so remove them (or clear `elum.passkeys` at the move) to bring the "Sign in faster" suggestion back. The passkey function accepts
-`https://accountsbyelum.netlify.app`, `https://account.elum.services` and `http://localhost`.
+`https://accountsbyelum.netlify.app`, `https://account.elum.space` and `http://localhost`.
 
 Deploy it with `supabase functions deploy passkey --no-verify-jwt` (signing in has no session yet;
 making a passkey checks the session itself).

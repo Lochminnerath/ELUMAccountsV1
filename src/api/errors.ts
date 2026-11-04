@@ -13,6 +13,7 @@ export type ApiErrorCode =
   | 'network'
   | 'approval_required'
   | 'cancelled'
+  | 'ensure'
   | 'server';
 
 const STATUS: Record<ApiErrorCode, number> = {
@@ -31,6 +32,7 @@ const STATUS: Record<ApiErrorCode, number> = {
   approval_required: 403,
   cancelled: 0,
   server: 500,
+  ensure: 403,
 };
 
 export class ApiError extends Error {

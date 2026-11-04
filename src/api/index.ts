@@ -1,6 +1,7 @@
 import type { AccountApi } from './client';
 import { LocalAccountApi } from './local/LocalAccountApi';
 import { SupabaseAccountApi } from './supabase/SupabaseAccountApi';
+import { createEnsure, previewEnsure, type Ensure } from '../ensure';
 
 /**
  * The one API instance: the ELUM platform on Supabase when VITE_SUPABASE_URL and
@@ -18,6 +19,9 @@ const key = browserOnly ? null : env.VITE_SUPABASE_ANON_KEY?.trim() || ELUM_SUPA
 const typeDomain = env.VITE_ELUM_TYPE_DOMAIN?.trim() || 'type.elum.services';
 
 export const api: AccountApi = url && key ? new SupabaseAccountApi(url, key, { typeDomain }) : new LocalAccountApi({ typeDomain });
+
+/** ELUM Ensure, the check that a person is signing up or in (see src/ensure). */
+export const ensure: Ensure = url && key ? createEnsure(url, key) : previewEnsure();
 
 export * from './types';
 export type { AccountApi } from './client';

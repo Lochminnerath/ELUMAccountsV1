@@ -1,7 +1,8 @@
 import { HiddenIcon, VerifiedIcon, VisibleIcon, WarningIcon } from '../components/icons/ElumIcons';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { api, errorMessage, isApiError } from '../api';
+import { api, ensure, errorMessage, isApiError } from '../api';
+import { EnsureCheck } from '../ensure';
 import { handleProblem } from '../api/validation';
 import { useAuth } from '../auth/AuthProvider';
 import { safeLocalPath } from '../auth/guards';
@@ -41,6 +42,11 @@ export function AuthPage({ mode }: { mode: Mode }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [handleState, setHandleState] = useState<HandleState>({ kind: 'idle' });
+  // ELUM Ensure: sign-up always checks that a person is there; sign-in only when this address has
+  // been unusually busy (say, many wrong passwords). A new check is drawn after every attempt.
+  const [pass, setPass] = useState<string | null>(null);
+  const [checkNeeded, setCheckNeeded] = useState(mode === 'signup');
+  const [checkRound, setCheckRound] = useState(0);
   const [error, setError] = useState<{ message: string; field?: Field; notice?: boolean; passkey?: boolean; cause?: unknown } | null>(null);
   const isSignUp = mode === 'signup';
   const carry = back && to ? `?${new URLSearchParams({ to, next }).toString()}` : next !== '/' ? `?next=${encodeURIComponent(next)}` : '';
@@ -70,6 +76,21 @@ export function AuthPage({ mode }: { mode: Mode }) {
       window.clearTimeout(t);
     };
   }, [handle, kind, isSignUp]);
+
+  useEffect(() => {
+    if (isSignUp) {
+      setCheckNeeded(true);
+      return;
+    }
+    let live = true;
+    ensure.needed('sign_in').then(
+      (r) => live && setCheckNeeded(r.needed),
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, [isSignUp, checkRound]);
 
   // Back to the app that sent them, signed in there too.
   const done = () => {
@@ -112,16 +133,25 @@ export function AuthPage({ mode }: { mode: Mode }) {
       setError({ message: handleState.message, field: 'handle' });
       return;
     }
+    if (checkNeeded && !pass) {
+      setError({ message: 'Press and hold the ring first, to confirm you are a person.' });
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       if (!isSignUp) await signIn({ login, password });
-      else if (kind === 'type') await signUp({ kind: 'type', handle, name, password, recoveryEmail: recovery || undefined });
-      else await signUp({ kind: 'external', name, email, password });
+      else if (kind === 'type') await signUp({ kind: 'type', handle, name, password, recoveryEmail: recovery || undefined, ensurePass: pass ?? undefined });
+      else await signUp({ kind: 'external', name, email, password, ensurePass: pass ?? undefined });
+      if (!isSignUp) void ensure.report('sign_in', 'succeeded').catch(() => undefined);
       done();
     } catch (err) {
       const field = isApiError(err) ? (err.details?.field as Field | undefined) : undefined;
       setError({ message: errorMessage(err), field, notice: isApiError(err, 'confirm_email'), cause: err });
+      if (!isSignUp && isApiError(err, 'invalid_credentials')) void ensure.report('sign_in', 'failed').catch(() => undefined);
+      // A pass is used once, so every attempt that did not get through draws a fresh check.
+      setPass(null);
+      setCheckRound((r) => r + 1);
       setBusy(false);
     }
   };
@@ -304,7 +334,9 @@ export function AuthPage({ mode }: { mode: Mode }) {
             </div>
           )}
 
-          <button type="submit" className="elum-btn elum-btn--primary elum-btn--block auth__submit" disabled={busy}>
+          {checkNeeded && <EnsureCheck key={checkRound} ensure={ensure} action={isSignUp ? 'sign_up' : 'sign_in'} onPass={setPass} />}
+
+          <button type="submit" className="elum-btn elum-btn--primary elum-btn--block auth__submit" disabled={busy || (checkNeeded && !pass)}>
             {busy ? <Loader size={20} brand label={isSignUp ? 'Creating your account' : 'Signing in'} /> : isSignUp ? 'Create account' : 'Sign in'}
           </button>
 

@@ -1,0 +1,184 @@
+/* ELUM Ensure: a soft card with the ELUM ring. Holding fills the ring in ELUM blue; when the check
+   is done the two circles settle and a tick appears. */
+.ensure {
+  --ensure-blue: #5c80f2;
+  --ensure-pale: #bacafc;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 18px;
+  border: 1px solid var(--hairline, #e2e5ee);
+  background: var(--surface, #fff);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.ensure--compact {
+  padding: 8px 12px 8px 8px;
+}
+.ensure__ring {
+  --fill: 0;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+.ensure__ring:disabled {
+  cursor: default;
+}
+.ensure__ring:focus-visible {
+  outline: 2px solid var(--ensure-blue);
+  outline-offset: 3px;
+}
+.ensure__ring svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ensure__track {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ensure-pale) 60%, transparent);
+  stroke-width: 3;
+}
+.ensure__fill {
+  fill: none;
+  stroke: var(--ensure-blue);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--fill));
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+.ensure__a,
+.ensure__b {
+  fill: color-mix(in srgb, var(--ensure-pale) 45%, var(--surface, #fff));
+  stroke: var(--ensure-pale);
+  stroke-width: 1.4;
+  transition:
+    transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    fill 300ms ease;
+  transform-origin: 50% 50%;
+}
+.ensure[data-step='holding'] .ensure__a,
+.ensure[data-step='holding'] .ensure__b {
+  transform: scale(0.92);
+}
+.ensure__tick {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  transition: stroke-dashoffset 400ms ease 150ms;
+}
+.ensure[data-step='done'] .ensure__fill {
+  stroke-dashoffset: 0;
+}
+.ensure[data-step='done'] .ensure__a,
+.ensure[data-step='done'] .ensure__b {
+  fill: var(--ensure-blue);
+  stroke: var(--ensure-blue);
+  transform: scale(1.06);
+}
+.ensure[data-step='done'] .ensure__tick {
+  stroke-dashoffset: 0;
+}
+.ensure[data-step='checking'] .ensure__ring svg,
+.ensure[data-step='loading'] .ensure__ring svg {
+  animation: ensure-wait 1.2s ease-in-out infinite;
+}
+@keyframes ensure-wait {
+  50% {
+    opacity: 0.55;
+  }
+}
+.ensure__copy {
+  min-width: 0;
+}
+.ensure__label {
+  margin: 0;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--ink, #141a2e);
+}
+.ensure[data-step='error'] .ensure__label {
+  color: var(--danger, #c4372d);
+}
+.ensure__by {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--ink-muted, #5a6178);
+}
+.ensure__again {
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ensure-blue);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ensure__a,
+  .ensure__b,
+  .ensure__tick {
+    transition: none;
+  }
+  .ensure[data-step='checking'] .ensure__ring svg,
+  .ensure[data-step='loading'] .ensure__ring svg {
+    animation: none;
+  }
+}
+
+/* The window that asks for a check in the middle of something. */
+.ensure-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(14, 18, 32, 0.42);
+}
+.ensure-gate__box {
+  width: min(100%, 420px);
+  padding: 24px;
+  border-radius: 24px;
+  background: var(--surface, #fff);
+  box-shadow: 0 30px 80px -30px rgba(14, 18, 32, 0.5);
+  display: grid;
+  gap: 14px;
+}
+.ensure-gate__box h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+.ensure-gate__box p {
+  margin: 0;
+  color: var(--ink-muted, #5a6178);
+  line-height: 1.5;
+}
+.ensure-gate__close {
+  justify-self: end;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-muted, #5a6178);
+  font: inherit;
+  cursor: pointer;
+}

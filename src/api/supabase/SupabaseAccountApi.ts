@@ -97,7 +97,7 @@ export class SupabaseAccountApi implements AccountApi {
       if (problem) throw new ApiError('invalid', problem, { field: 'handle' });
       // Type accounts are created by Type's sign-up function, on the same project.
       const { data, error } = await this.sb.functions.invoke<{ error?: RawError }>('type-signup', {
-        body: { handle: input.handle.trim().toLowerCase(), name, password: input.password, recoveryEmail: input.recoveryEmail?.trim() || undefined },
+        body: { handle: input.handle.trim().toLowerCase(), name, password: input.password, recoveryEmail: input.recoveryEmail?.trim() || undefined, ensurePass: input.ensurePass },
       });
       if (error) throw await functionError(error);
       if (data?.error) throw toApiError(data.error);
@@ -105,8 +105,10 @@ export class SupabaseAccountApi implements AccountApi {
     }
     const email = input.email.trim().toLowerCase();
     if (!isEmail(email)) throw new ApiError('invalid', 'Enter a valid email address.', { field: 'email' });
-    const { data, error } = await this.sb.auth.signUp({ email, password: input.password, options: { data: { name }, emailRedirectTo: `${location.origin}/` } });
+    const { data, error } = await this.sb.auth.signUp({ email, password: input.password, options: { data: { name, ensure_pass: input.ensurePass }, emailRedirectTo: `${location.origin}/` } });
     if (error) {
+      // ELUM Ensure's sign-up hook refused it: the person check was missing or already used.
+      if (/not a robot/i.test(error.message ?? '')) throw new ApiError('ensure', 'Confirm you are a person first, then try again.');
       if (error.code === 'user_already_exists' || error.code === 'email_exists') {
         throw new ApiError('email_taken', 'An account with this email already exists. Sign in instead.', { field: 'email' });
       }

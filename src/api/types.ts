@@ -113,9 +113,13 @@ export interface Session {
   account: Account;
 }
 
-export type SignUpInput =
+export type SignUpInput = (
   | { kind: 'type'; handle: string; name: string; password: string; recoveryEmail?: string }
-  | { kind: 'external'; name: string; email: string; password: string };
+  | { kind: 'external'; name: string; email: string; password: string }
+) & {
+  /** The ELUM Ensure pass that shows a person is signing up. */
+  ensurePass?: string;
+};
 
 export interface SignInInput {
   /** An email address, or just a Type handle. */

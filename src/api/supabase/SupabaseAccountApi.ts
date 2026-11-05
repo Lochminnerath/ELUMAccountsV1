@@ -222,7 +222,7 @@ export class SupabaseAccountApi implements AccountApi {
     if (!email) throw new ApiError('unauthorized', 'Your session has ended. Sign in again.');
     const { error } = await this.sb.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/password` });
     if (error) {
-      if (error.status === 429) throw new ApiError('rate_limited', 'We just sent a link. Wait a minute before asking for another.');
+      if (error.status === 429) throw new ApiError('rate_limited', 'For your safety, ELUM sends one link a minute. Wait a minute, then ask again.');
       throw toApiError(error);
     }
     return email;

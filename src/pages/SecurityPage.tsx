@@ -1,9 +1,7 @@
 import { Laptop, Smartphone } from 'lucide-react';
-import { HiddenIcon, VisibleIcon } from '../components/icons/ElumIcons';
 import { SignOutIcon } from '../components/icons/ElumIcons';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { api, errorMessage, type Activity, type Device, type SecuritySettings } from '../api';
-import { MIN_PASSWORD } from '../api/validation';
 import { useToast } from '../components/Toast';
 import { formatFull, formatWhen } from '../lib/time';
 import { PasskeysPanel } from '../passkeys/PasskeysPanel';
@@ -40,8 +38,7 @@ export function deviceName(ua: string | null): string {
 /** Password, signed-in devices and recent activity (handoff 3.8). */
 export function SecurityPage() {
   const toast = useToast();
-  const [password, setPassword] = useState('');
-  const [show, setShow] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [devices, setDevices] = useState<Device[] | null>(null);
@@ -55,15 +52,11 @@ export function SecurityPage() {
   };
   useEffect(load, []);
 
-  const change = async (e: FormEvent) => {
-    e.preventDefault();
+  const sendLink = async () => {
     setBusy(true);
     setError(null);
     try {
-      await api.changePassword(password);
-      setPassword('');
-      toast('Password changed. Use it next time you sign in.', { tone: 'success' });
-      load();
+      setSentTo(await api.sendPasswordLink());
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -133,25 +126,22 @@ export function SecurityPage() {
 
       <PasskeysPanel onChange={load} />
 
-      <form className="panel" aria-labelledby="s-pass" onSubmit={change}>
+      <section className="panel" aria-labelledby="s-pass">
         <h2 id="s-pass" className="panel__title">Change your password</h2>
-        <div className="field">
-          <label htmlFor="s-new">New password</label>
-          <div className="password-field">
-            <input id="s-new" className="input" type={show ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <button type="button" className="icon-btn password-field__reveal" aria-label={show ? 'Hide password' : 'Show password'} aria-pressed={show} onClick={() => setShow((v) => !v)}>
-              {show ? <HiddenIcon size={18} strokeWidth={1.75} /> : <VisibleIcon size={18} strokeWidth={1.75} />}
-            </button>
-          </div>
-          <span className="muted panel__hint">At least {MIN_PASSWORD} characters. Other devices stay signed in until you sign them out below.</span>
-        </div>
+        {sentTo ? (
+          <p className="muted panel__hint">
+            We sent a link to <strong>{sentTo}</strong>. Open it to choose a new password. It works once and for one hour.
+          </p>
+        ) : (
+          <p className="muted panel__hint">For your safety, ELUM emails you a link first. Other devices stay signed in until you sign them out below.</p>
+        )}
         {error && <p className="form-error">{error}</p>}
         <div className="panel__actions">
-          <button type="submit" className="elum-btn elum-btn--primary" disabled={busy || password.length < MIN_PASSWORD}>
-            Change password
+          <button type="button" className={`elum-btn ${sentTo ? 'elum-btn--secondary' : 'elum-btn--primary'}`} disabled={busy} onClick={() => void sendLink()}>
+            {sentTo ? 'Send it again' : 'Email me a link'}
           </button>
         </div>
-      </form>
+      </section>
 
       <section className="panel" aria-labelledby="s-devices">
         <h2 id="s-devices" className="panel__title">Signed-in devices</h2>

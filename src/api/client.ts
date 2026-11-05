@@ -41,6 +41,11 @@ export interface AccountApi {
   confirmAddress(address: string, code: string): Promise<void>;
   removeAddress(address: string): Promise<void>;
 
+  /** Emails a link that opens /password, where a new password is chosen. Returns where it went. */
+  sendPasswordLink(): Promise<string>;
+  /** True when this session came from that link in the last 15 minutes, so the password may change. */
+  canChangePassword(): boolean;
+  /** Only works from the emailed link (canChangePassword). */
   changePassword(password: string): Promise<void>;
   devices(): Promise<Device[]>;
   signOutOtherDevices(): Promise<void>;

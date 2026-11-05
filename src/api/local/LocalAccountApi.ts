@@ -348,6 +348,15 @@ export class LocalAccountApi implements AccountApi {
 
   // ---------------------------------------------------------------- security
 
+  /** Preview mode has no email: the page opens straight away. */
+  async sendPasswordLink(): Promise<string> {
+    return 'your email';
+  }
+
+  canChangePassword(): boolean {
+    return true;
+  }
+
   async changePassword(password: string): Promise<void> {
     checkPassword(password);
     const hash = await hashPassword(password, this.iterations);

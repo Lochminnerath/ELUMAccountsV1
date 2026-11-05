@@ -77,8 +77,7 @@ export function ApprovePage() {
             <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
-        <h1 className="approval__title">Approved</h1>
-        <p className="approval__text">{info?.device ?? 'The other device'} signs in by itself in a moment. You can close this page.</p>
+        <h1 className="approval__title">Sign-in approved</h1>
       </>,
     );
   }

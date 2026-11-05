@@ -3,8 +3,9 @@
 //
 //   POST { address } with the session → { data: { sent: true } }
 //
-// Secrets: BREVO_API_KEY, ACCOUNT_EMAIL_FROM (such as "ELUM <account@elum.space>"), and
-// APP_URL (where Accounts is hosted, for images in the email).
+// Secrets: BREVO_API_KEY and ACCOUNT_EMAIL_FROM (such as "ELUM <account@elum.space>"). Optional
+// ACCOUNT_URL, where ELUM Account is hosted (for the images in the email), defaults to
+// https://account.elum.space.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { addressCodeEmail } from '../_shared/email.ts';
@@ -36,8 +37,8 @@ Deno.serve(async (req) => {
 
   const key = Deno.env.get('BREVO_API_KEY');
   const from = Deno.env.get('ACCOUNT_EMAIL_FROM');
-  const appUrl = (Deno.env.get('APP_URL') ?? '').replace(/\/+$/, '');
-  if (!key || !from || !appUrl) return fail('server', 'Email is not set up yet, so we cannot send the code.');
+  const appUrl = (Deno.env.get('ACCOUNT_URL') || 'https://account.elum.space').replace(/\/+$/, '');
+  if (!key || !from) return fail('server', 'Email is not set up yet, so we cannot send the code.');
   const { data: profile } = await db.from('profiles').select('name').eq('id', auth.user.id).single<{ name: string }>();
   const email = addressCodeEmail({ code, address, name: profile?.name ?? 'there' }, { assetBase: appUrl });
   const sender = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);

@@ -1,7 +1,7 @@
 /**
  * ELUM Account emails (address codes and the like), on the ELUM email layout from Write's
  * docs/EMAIL.md: the product lockup, one card, one action, a plain-text version and the footer.
- * Copied from Write's supabase/functions/_shared/email.ts (by way of Type) with the Account lockup
+ * Copied from Write's supabase/functions/_shared/email.ts (by way of Type) with the ELUM lockup
  * and the leaf accent, minus the document card.
  */
 
@@ -24,7 +24,7 @@ export interface EmailContent {
 }
 
 export interface RenderOptions {
-  /** Where /brand/email/*.png are served from: the Accounts site's URL. */
+  /** Where /brand/email/*.png are served from: the ELUM Account site's URL. */
   assetBase: string;
 }
 
@@ -136,8 +136,8 @@ export function renderEmail(subject: string, c: EmailContent, { assetBase }: Ren
 <tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
 <tr><td style="padding:0 4px 20px">
-<img class="logo-light" src="${base}/brand/email/account-lockup.png" width="160" height="38" alt="ELUM Account" style="display:block;border:0">
-<!--[if !mso]><!--><img class="logo-dark" src="${base}/brand/email/account-lockup-reversed.png" width="160" height="38" alt="ELUM Account" style="display:none;max-height:0;overflow:hidden;border:0"><!--<![endif]-->
+<img class="logo-light" src="${base}/brand/email/elum-lockup.png" width="126" height="40" alt="ELUM" style="display:block;border:0">
+<!--[if !mso]><!--><img class="logo-dark" src="${base}/brand/email/elum-lockup-reversed.png" width="126" height="40" alt="ELUM" style="display:none;max-height:0;overflow:hidden;border:0"><!--<![endif]-->
 </td></tr>
 <tr><td class="card card-pad" style="background:${C.card};border:1px solid ${C.hairline};border-radius:16px;padding:36px 36px 32px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -147,7 +147,7 @@ ${parts.join('\n')}
 <tr><td class="footer" style="padding:24px 4px 0">
 <table role="presentation" cellpadding="0" cellspacing="0"><tr>
 <td style="padding:0 10px 0 0;vertical-align:middle"><img src="${base}/brand/email/elum-mark.png" width="20" height="20" alt="ELUM" style="display:block;border:0"></td>
-<td style="font:600 12px/16px ${SANS};color:${C.muted};vertical-align:middle">Built by people. Runs without AI.</td>
+<td style="font:600 12px/16px ${SANS};color:${C.muted};vertical-align:middle">Made by you. Runs without AI.</td>
 </tr></table>
 <div style="padding:10px 0 0;font:400 12px/18px ${SANS};color:${C.muted}">${e(c.reason)}</div>
 </td></tr>
@@ -167,7 +167,7 @@ ${parts.join('\n')}
     c.button ? `${c.button.label}: ${c.button.url}` : null,
     c.note ?? null,
     '--',
-    'ELUM. Built by people. Runs without AI.',
+    'ELUM. Made by you. Runs without AI.',
     c.reason,
   ]
     .filter((l): l is string => l !== null)
@@ -193,6 +193,29 @@ export function addressCodeEmail(d: { code: string; address: string; name: strin
       code: d.code,
       note: 'The code works for 30 minutes. Never share it with anyone.',
       reason: `You got this because someone asked to add ${d.address} to an ELUM account. If it was not you, ignore this email and nothing changes.`,
+    },
+    o,
+  );
+}
+
+/** "Is this you signing in?" with a link to the approval page (Approve new sign-ins). */
+export function signInLinkEmail(
+  d: { name: string; device: string; place: string | null; when: string; url: string },
+  o: RenderOptions,
+): RenderedEmail {
+  return renderEmail(
+    'Is this you signing in to ELUM?',
+    {
+      preheader: `${d.device} is waiting for you to approve it.`,
+      eyebrow: 'Approve new sign-ins',
+      title: 'Is this you signing in?',
+      paragraphs: [
+        `Hi ${d.name}. ${d.device} is signing in to your ELUM account with your password${d.place ? `, from ${d.place}` : ''}, ${d.when}.`,
+        'If it is you, open the secure page and pick the number showing on that device. It then signs in by itself.',
+      ],
+      button: { label: 'Review this sign-in', url: d.url },
+      note: 'The link works once and only for the next ten minutes. Never forward this email.',
+      reason: 'You got this because Approve new sign-ins is on for your ELUM account. If it was not you, open the page and choose "No, it is not me", then change your password.',
     },
     o,
   );

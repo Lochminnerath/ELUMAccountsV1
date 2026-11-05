@@ -1,8 +1,13 @@
-// Sends "Is this you signing in?" to the person's ELUM app devices. Called by the web page that is
-// waiting for approval, with its own (pending) session. Each sign-in is pushed at most once.
+// Sends "Is this you signing in?" to the person's ELUM app devices, and emails a link to the
+// approval page (ELUM Account /approve) to every confirmed address on the account. Called by the web
+// page that is waiting for approval, with its own (pending) session. Each sign-in is pushed at most
+// once and emailed at most once.
+// The email needs BREVO_API_KEY and ACCOUNT_EMAIL_FROM; optional ACCOUNT_URL defaults to
+// https://account.elum.space.
 // Needs secrets APNS_KEY_ID, APNS_TEAM_ID, APNS_PRIVATE_KEY (.p8 contents), APNS_TOPIC (bundle id),
 // optional APNS_SANDBOX=true, and FCM_SERVICE_ACCOUNT (the JSON). Without them it sends nothing.
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import { signInLinkEmail } from '../_shared/email.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -56,6 +61,59 @@ async function fcm(token: string, payload: Record<string, string>, title: string
   return res.ok;
 }
 
+const hex = (b: ArrayBuffer) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join('');
+
+/** When it happened, for the email: "on 5 November at 14:02 UTC". */
+const when = (iso: string) =>
+  'on ' + new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })
+    .format(new Date(iso)) + ' UTC';
+
+/** Emails the approval link once. Never throws: a failed email must not block the push. */
+async function emailLink(admin: SupabaseClient, jwt: string, session: string): Promise<number> {
+  try {
+    const key = Deno.env.get('BREVO_API_KEY');
+    const from = Deno.env.get('ACCOUNT_EMAIL_FROM');
+    if (!key || !from) return 0;
+    // The session must be real and the caller's own: Supabase checks the token.
+    const { data: auth } = await admin.auth.getUser(jwt);
+    if (!auth.user) return 0;
+
+    const raw = crypto.getRandomValues(new Uint8Array(32));
+    const token = btoa(String.fromCharCode(...raw)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const hash = hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token)));
+    const { data } = await admin.rpc('elum_sign_in_email_start', { p_sign_in: session, p_account: auth.user.id, p_link_hash: hash });
+    const to = (data?.addresses ?? []) as string[];
+    if (!data || to.length === 0) return 0;
+
+    const accountUrl = (Deno.env.get('ACCOUNT_URL') || 'https://account.elum.space').replace(/\/+$/, '');
+    const email = signInLinkEmail(
+      { name: data.name || 'there', device: data.device, place: data.ip ? `the internet address ${data.ip}` : null, when: when(data.at), url: `${accountUrl}/approve#${token}` },
+      { assetBase: accountUrl },
+    );
+    const sender = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+    let sent = 0;
+    // One email per address, so nobody sees the others.
+    for (const address of to) {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'api-key': key, 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          sender: sender ? { name: sender[1] || 'ELUM', email: sender[2] } : { name: 'ELUM', email: from.trim() },
+          to: [{ email: address }],
+          subject: email.subject,
+          htmlContent: email.html,
+          textContent: email.text,
+          tags: ['sign-in-approval'],
+        }),
+      });
+      if (res.ok) sent++;
+    }
+    return sent;
+  } catch {
+    return 0;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return reply(405, { error: 'Use POST.' });
@@ -69,9 +127,10 @@ Deno.serve(async (req) => {
   }
   if (!session) return reply(401, { error: 'Sign in first.' });
 
-  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
+  const emailed = await emailLink(admin, token, session);
   const { data } = await admin.rpc('elum_push_targets', { p_sign_in: session });
-  if (!data) return reply(200, { sent: 0 });
+  if (!data) return reply(200, { sent: 0, emailed });
   const title = 'Is this you signing in?';
   const body = `${data.device} is waiting for you to approve it.`;
   const payload = { type: 'elum.sign_in', signInId: data.signInId };
@@ -83,5 +142,5 @@ Deno.serve(async (req) => {
       // One bad token must not stop the others.
     }
   }
-  return reply(200, { sent });
+  return reply(200, { sent, emailed });
 });

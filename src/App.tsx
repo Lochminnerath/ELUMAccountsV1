@@ -25,6 +25,7 @@ import { Shell } from './shell/Shell';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { WhatsNew } from './whatsnew/WhatsNew';
 import { SecurityLayer } from './security/SecurityLayer';
+import { ApprovePage } from './security/ApprovePage';
 import { PasskeyOffer } from './passkeys/PasskeyOffer';
 import { useAuth } from './auth/AuthProvider';
 import { Navigate, useSearchParams } from 'react-router';
@@ -87,6 +88,7 @@ export function App() {
                 <Route path="/continue" element={<ContinuePage />} />
                 <Route path="/auth/handoff" element={<HandoffPage />} />
                 <Route path="/signout" element={<SignOutPage />} />
+                <Route path="/approve" element={<ApprovePage />} />
                 <Route path="/go/:app" element={<RequireAuth><GoPage /></RequireAuth>} />
                 <Route path="/" element={<Page><OverviewPage /></Page>} />
                 <Route path="/profile" element={<Page><ProfilePage /></Page>} />

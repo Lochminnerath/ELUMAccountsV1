@@ -66,3 +66,30 @@ export async function answerSignIn(sb: SupabaseClient, id: string, number: numbe
   if (error) throw error;
   return data as 'approved' | 'denied';
 }
+
+export type LinkSignInStatus = 'pending' | 'approved' | 'denied' | 'expired' | 'missing';
+
+/** The sign-in an emailed link belongs to (the /approve page). Numbers only while it waits. */
+export interface LinkSignIn {
+  status: LinkSignInStatus;
+  device?: string;
+  ip?: string | null;
+  at?: string;
+  expiresAt?: string;
+  numbers?: number[] | null;
+}
+
+/** For the /approve page: which sign-in the emailed link is for. No ELUM session needed. */
+export async function linkSignIn(sb: SupabaseClient, token: string): Promise<LinkSignIn> {
+  if (!token) return { status: 'missing' };
+  const { data, error } = await sb.rpc('elum_link_sign_in', { p_token: token });
+  if (error) throw error;
+  return data as LinkSignIn;
+}
+
+/** Picks a number from the emailed link (approve if it is the right one), or null for "No, it is not me". */
+export async function answerLinkSignIn(sb: SupabaseClient, token: string, number: number | null): Promise<'approved' | 'denied'> {
+  const { data, error } = await sb.rpc('elum_answer_link_sign_in', { p_token: token, p_number: number });
+  if (error) throw new Error(error.message);
+  return data as 'approved' | 'denied';
+}

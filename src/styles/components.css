@@ -43,6 +43,9 @@
 .product-glyph[data-product='make'] { color: var(--make-deep); }
 .product-glyph[data-product='store'] { color: var(--store-deep); }
 .product-glyph[data-product='inquire'] { color: var(--inquire-deep); }
+.product-glyph[data-product='tune'] { color: var(--tune-deep); }
+.product-glyph[data-product='code'] { color: var(--code-deep); }
+.product-glyph[data-product='capture'] { color: var(--capture-deep); }
 .product-glyph[data-product='account'] { color: var(--account-deep); }
 
 .user-menu__trigger {

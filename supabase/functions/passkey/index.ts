@@ -7,8 +7,8 @@
 //
 // The browser trades tokenHash for a session (supabase.auth.verifyOtp, type magiclink). That
 // sign-in counts as an email link, which sign-in approvals treat as approved: a passkey proves more
-// than a password. Passkeys belong to the site's hostname, so only ELUM Account's own addresses are
-// allowed (_shared/passkey.ts). Deploy with --no-verify-jwt: signing in has no session yet; the
+// than a password. On elum.space, passkeys belong to elum.space itself, so one passkey works in every
+// ELUM app there (_shared/passkey.ts). Deploy with --no-verify-jwt: signing in has no session yet; the
 // register actions check the session themselves.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return fail('invalid', 'Use POST.');
   const site = passkeySite(req.headers.get('Origin'));
-  if (!site) return fail('forbidden', 'Passkeys work on the ELUM Account site only.');
+  if (!site) return fail('forbidden', 'Passkeys work on ELUM\'s own sites (elum.space) only.');
 
   let body: { action?: string; challengeId?: string; response?: unknown; email?: string; name?: string };
   try {

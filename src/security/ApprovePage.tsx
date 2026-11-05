@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { api } from '../api';
 import { linkSignIn, answerLinkSignIn, type LinkSignIn } from './approvals';
 import './Approvals.css';
+import { friendly } from '../lib/friendly';
 
 const sb = api.mode === 'remote' ? (api as unknown as { sb: SupabaseClient }).sb : null;
 
@@ -44,7 +45,7 @@ export function ApprovePage() {
       const result = await answerLinkSignIn(sb, token, number);
       setDone(result === 'approved' ? 'approved' : number === null ? 'denied' : 'wrong');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong. Try again.');
+      setError(friendly(e instanceof Error ? e.message : 'Something went wrong. Try again.'));
     } finally {
       setBusy(false);
     }

@@ -1,4 +1,5 @@
 import { Camera, Check } from 'lucide-react';
+import { friendly } from '../lib/friendly';
 import { DeleteIcon } from '../components/icons/ElumIcons';
 import { useRef, useState, type FormEvent } from 'react';
 import { api, errorMessage } from '../api';
@@ -54,7 +55,7 @@ export function ProfilePage() {
       setAccount(await api.setPicture(await squarePicture(file)));
       toast('Picture updated', { tone: 'success' });
     } catch (err) {
-      setError(err instanceof Error && !('code' in err) ? err.message : errorMessage(err));
+      setError(err instanceof Error && !('code' in err) ? friendly(err.message) : errorMessage(err));
     } finally {
       setBusy(null);
     }

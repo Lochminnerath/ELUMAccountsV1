@@ -7,6 +7,7 @@ import type { Account, Activity, Circle, Device, NotificationSetting, Passkey, P
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
 import { cookieStorage, usableCookieDomain } from './cookieStorage';
 import { PENDING_ROLE, tokenRole } from '../../security/approvals';
+import { cameFromPasswordLink } from '../../security/passwordLink';
 
 /**
  * ELUM Accounts on the shared ELUM Supabase project. Reads and changes go through the platform's
@@ -21,6 +22,8 @@ export class SupabaseAccountApi implements AccountApi {
   readonly mode = 'remote' as const;
   readonly typeDomain: string;
   readonly sb: SupabaseClient;
+  /** The current access token, kept for checks that must not wait (canChangePassword). */
+  private accessToken: string | null = null;
   private readonly unauthorizedHandlers = new Set<() => void>();
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
@@ -36,7 +39,8 @@ export class SupabaseAccountApi implements AccountApi {
           ...(cookieDomain ? { storageKey: 'elum-auth', storage: cookieStorage({ domain: cookieDomain, secure: location.protocol === 'https:' }) } : {}),
         },
       });
-    this.sb.auth.onAuthStateChange((event) => {
+    this.sb.auth.onAuthStateChange((event, session) => {
+      this.accessToken = session?.access_token ?? null;
       if (event === 'SIGNED_OUT') this.unauthorizedHandlers.forEach((h) => h());
     });
   }
@@ -212,8 +216,25 @@ export class SupabaseAccountApi implements AccountApi {
 
   // ---------------------------------------------------------------- security
 
+  async sendPasswordLink(): Promise<string> {
+    const { data } = await this.sb.auth.getSession();
+    const email = data.session?.user.email;
+    if (!email) throw new ApiError('unauthorized', 'Your session has ended. Sign in again.');
+    const { error } = await this.sb.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/password` });
+    if (error) {
+      if (error.status === 429) throw new ApiError('rate_limited', 'We just sent a link. Wait a minute before asking for another.');
+      throw toApiError(error);
+    }
+    return email;
+  }
+
+  canChangePassword(): boolean {
+    return cameFromPasswordLink(this.accessToken);
+  }
+
   async changePassword(password: string): Promise<void> {
     checkPassword(password);
+    if (!this.canChangePassword()) throw new ApiError('forbidden', 'Open the link we emailed you to change your password.');
     const { error } = await this.sb.auth.updateUser({ password });
     if (error) {
       if (error.code === 'weak_password' || error.code === 'same_password') throw new ApiError('invalid', error.message, { field: 'password' });

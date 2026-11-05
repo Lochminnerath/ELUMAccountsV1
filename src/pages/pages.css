@@ -595,3 +595,11 @@
   margin-left: auto;
   flex: none;
 }
+
+/* /password, opened from the emailed link. */
+.password-page__form {
+  width: 100%;
+  display: grid;
+  gap: 16px;
+  text-align: left;
+}

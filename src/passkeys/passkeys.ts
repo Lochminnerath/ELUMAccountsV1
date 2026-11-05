@@ -1,18 +1,19 @@
 /** Passkeys in this browser, and when to suggest making one. */
 
 /**
- * Where passkeys work: ELUM Account's own addresses, its Netlify previews and localhost, as the
- * passkey function allows (supabase/functions/_shared/passkey.ts). A passkey belongs to the address
- * it was made on, so one made on a preview only works on that preview.
+ * Where passkeys work, as the passkey function allows (supabase/functions/_shared/passkey.ts):
+ * every app on elum.space (one passkey for all of them), plus ELUM Account's Netlify addresses, its
+ * previews and localhost. Off elum.space a passkey belongs to the address it was made on.
  */
 // elumaccounts.netlify.app is Account's old address, kept while the site is renamed.
-export const PASSKEY_ORIGINS = ['https://accountsbyelum.netlify.app', 'https://account.elum.space', 'https://elumaccounts.netlify.app'];
+export const PASSKEY_ORIGINS = ['https://accountbyelum.netlify.app', 'https://accountsbyelum.netlify.app', 'https://elumaccounts.netlify.app'];
 
 export function passkeySiteAllowed(origin: string): boolean {
   try {
     const url = new URL(origin);
     if (url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname === '127.0.0.1')) return true;
-    if (url.protocol === 'https:' && /^[a-z0-9-]+--(accountsbyelum|elumaccounts)\.netlify\.app$/.test(url.hostname)) return true;
+    if (url.protocol === 'https:' && (url.hostname === 'elum.space' || url.hostname.endsWith('.elum.space'))) return true;
+    if (url.protocol === 'https:' && /^[a-z0-9-]+--(accountbyelum|accountsbyelum|elumaccounts)\.netlify\.app$/.test(url.hostname)) return true;
     return PASSKEY_ORIGINS.includes(url.origin);
   } catch {
     return false;

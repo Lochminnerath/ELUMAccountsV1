@@ -7,10 +7,24 @@
  */
 
 /** The ELUM apps that may receive a sign-in, as origins. ELUM_APP_ORIGINS adds more. */
-export const DEFAULT_APP_ORIGINS = ['https://writebyelum.netlify.app', 'https://typebyelum.netlify.app', 'https://makebyelum.netlify.app', 'https://browsebyelum.netlify.app', 'https://storebyelum.netlify.app', 'https://accountsbyelum.netlify.app', 'https://inquirebyelum.netlify.app', 'https://tunebyelum.netlify.app'];
+export const DEFAULT_APP_ORIGINS = [
+  'https://writebyelum.netlify.app',
+  'https://makebyelum.netlify.app',
+  'https://accountbyelum.netlify.app',
+  'https://elum.netlify.app',
+  'https://elumtype.netlify.app',
+  'https://elumbrowse.netlify.app',
+  'https://elumstore.netlify.app',
+  'https://eluminquire.netlify.app',
+  'https://elumtune.netlify.app',
+  'https://elumcapture.netlify.app',
+  'https://elumcode.netlify.app',
+  'https://test90384284.netlify.app',
+  'https://adsserviceslmanager26.netlify.app',
+];
 
-/** The sites' old addresses, still trusted while each Netlify site is renamed to <name>byelum. */
-export const PREVIOUS_APP_ORIGINS = ['https://elumwrite.netlify.app', 'https://elumtype.netlify.app', 'https://elummake.netlify.app', 'https://elumbrowse.netlify.app', 'https://elumstore.netlify.app', 'https://elumaccounts.netlify.app', 'https://eluminquire.netlify.app'];
+/** Other Netlify names the sites have had or may be renamed to (<name>byelum). */
+export const PREVIOUS_APP_ORIGINS = ['https://typebyelum.netlify.app', 'https://browsebyelum.netlify.app', 'https://storebyelum.netlify.app', 'https://accountsbyelum.netlify.app', 'https://inquirebyelum.netlify.app', 'https://tunebyelum.netlify.app', 'https://codebyelum.netlify.app', 'https://capturebyelum.netlify.app', 'https://consolebyelum.netlify.app', 'https://elumwrite.netlify.app', 'https://elummake.netlify.app', 'https://elumaccounts.netlify.app'];
 
 /** ELUM's own domain: every https site on it is an ELUM app (write.elum.space, ...). */
 export const FAMILY_DOMAIN = 'elum.space';

@@ -27,6 +27,9 @@ describe('where passkeys are offered', () => {
   it('only on ELUM Account itself and localhost, never on deploy previews', () => {
     expect(passkeySiteAllowed('https://accountsbyelum.netlify.app')).toBe(true);
     expect(passkeySiteAllowed('https://account.elum.space')).toBe(true);
+    expect(passkeySiteAllowed('https://write.elum.space')).toBe(true);
+    expect(passkeySiteAllowed('https://accountbyelum.netlify.app')).toBe(true);
+    expect(passkeySiteAllowed('https://evilelum.space')).toBe(false);
     expect(passkeySiteAllowed('http://localhost:5173')).toBe(true);
     expect(passkeySiteAllowed('https://deploy-preview-5--accountsbyelum.netlify.app')).toBe(true);
     expect(passkeySiteAllowed('https://deploy-preview-5--writebyelum.netlify.app')).toBe(false);

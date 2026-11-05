@@ -27,7 +27,10 @@ Deno.serve(async (req) => {
     return fail('invalid', 'Send the details as JSON.');
   }
   const target = handoffTarget(String(body.to ?? ''), parseOrigins(Deno.env.get('ELUM_APP_ORIGINS')));
-  if (!target) return fail('forbidden', 'That site is not an ELUM app.');
+  if (!target) {
+    console.log(JSON.stringify({ refused: String(body.to ?? '').slice(0, 200) }));
+    return fail('forbidden', 'That site is not an ELUM app.');
+  }
 
   const limit = await db.rpc('elum_take_rate_limit', { p_key: `handoff:${user.id}`, p_limit: 60, p_window_seconds: 3600 });
   if (limit.data !== true) return fail('rate_limited', 'Too many sign-ins in the last hour. Try again later.');

@@ -3,6 +3,7 @@ import { api, errorMessage, type Audience, type Privacy } from '../api';
 import { useAccount, useAuth } from '../auth/AuthProvider';
 import { useToast } from '../components/Toast';
 import './pages.css';
+import { LEGAL_PAGES, legalUrl } from '../lib/legal';
 
 export const AUDIENCE_LABEL: Record<Audience, string> = {
   everyone: 'Everyone',
@@ -74,6 +75,22 @@ export function PrivacyPage() {
           </div>
         </section>
       ))}
+      <section className="panel" aria-labelledby="pr-yours">
+        <h2 id="pr-yours" className="panel__title">
+          Your information and ELUM
+        </h2>
+        <p className="muted panel__hint">
+          ELUM does not sell or share your personal information, does not run ads of its own, and does not use what you make to train AI. Search results in Browse come from Google, which
+          processes your searches and may show ads and share data under its own policies. Information you enter on websites that are not ELUM sites is handled by those websites, not by ELUM.
+        </p>
+        <p className="privacy-links">
+          {(['privacy', 'do-not-sell', 'ads', 'terms', 'service-terms', 'disclaimer'] as const).map((path) => (
+            <a key={path} href={legalUrl(path, 'account')} target="_blank" rel="noopener">
+              {LEGAL_PAGES.find((p) => p.path === path)!.label}
+            </a>
+          ))}
+        </p>
+      </section>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Bell, SlidersHorizontal, CircleUser, House, KeyRound, Mail, Megaphone, Moon, ShieldCheck, Sun, Users } from 'lucide-react';
+import { Bell, SlidersHorizontal, CircleUser, House, KeyRound, Mail, Megaphone, Moon, Scale, ShieldCheck, Sun, Users } from 'lucide-react';
 import { DeleteIcon, SignOutIcon } from '../components/icons/ElumIcons';
 import type { ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
@@ -10,6 +10,7 @@ import { AccountLockup, AccountMark } from '../components/Brand';
 import { Menu } from '../components/Menu';
 import { useTheme } from '../theme/ThemeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { LEGAL_PAGES, openLegal } from '../lib/legal';
 import { openWhatsNew } from '../whatsnew/WhatsNew';
 import './shell.css';
 import { ElumLauncher } from '../components/ElumLauncher';
@@ -66,6 +67,12 @@ export function Shell({ children }: { children: ReactNode }) {
             items={[
               { label: theme === 'dark' ? 'Light mode' : 'Dark mode', icon: theme === 'dark' ? <Sun size={16} strokeWidth={1.75} /> : <Moon size={16} strokeWidth={1.75} />, onSelect: toggle },
               { label: "What's new", icon: <Megaphone size={16} strokeWidth={1.75} />, onSelect: openWhatsNew },
+              {
+                label: 'Terms and policies',
+                hint: 'Privacy, ads, Do Not Sell and more',
+                icon: <Scale size={16} strokeWidth={1.75} />,
+                items: LEGAL_PAGES.map((p) => ({ label: p.label, onSelect: () => openLegal(p.path, 'account') })),
+              },
               'separator',
               {
                 label: 'Sign out',

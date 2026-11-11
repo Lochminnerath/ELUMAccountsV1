@@ -220,3 +220,28 @@ export function signInLinkEmail(
     o,
   );
 }
+
+/**
+ * The same news for an ELUM Type mailbox: no link and no number. Type is part of the account, so it
+ * must never be a way to approve a sign-in to that account.
+ */
+export function signInNoticeEmail(
+  d: { name: string; device: string; place: string | null; when: string; accountUrl: string },
+  o: RenderOptions,
+): RenderedEmail {
+  return renderEmail(
+    'Someone is signing in to your ELUM account',
+    {
+      preheader: `${d.device} is waiting for approval.`,
+      eyebrow: 'Approve new sign-ins',
+      title: 'A sign-in is waiting for approval',
+      paragraphs: [
+        `Hi ${d.name}. ${d.device} is signing in to your ELUM account with your password${d.place ? `, from ${d.place}` : ''}, ${d.when}.`,
+        'For your safety, sign-ins cannot be approved from Type. If it is you, approve it in ELUM Account on a device you already trust, or with the link we sent to your other email address.',
+        'If it is not you, change your password in ELUM Account now.',
+      ],
+      reason: `You got this because Approve new sign-ins is on for your ELUM account. ELUM Account: ${d.accountUrl}/security`,
+    },
+    o,
+  );
+}

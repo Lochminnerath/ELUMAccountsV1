@@ -15,6 +15,7 @@ import { ThemeToggle } from '../theme/ThemeToggle';
 import { passkeyAutofillSupported, passkeysSupported } from '../passkeys/passkeys';
 import { PasskeyIcon } from '../passkeys/PasskeyIcon';
 import './AuthPage.css';
+import { LEGAL_PAGES, legalUrl } from '../lib/legal';
 
 type Mode = 'signin' | 'signup';
 type Kind = 'type' | 'external';
@@ -336,6 +337,22 @@ export function AuthPage({ mode }: { mode: Mode }) {
 
           {checkNeeded && <EnsureCheck key={checkRound} ensure={ensure} action={isSignUp ? 'sign_up' : 'sign_in'} onPass={setPass} />}
 
+          <p className="auth__legal">
+            {isSignUp ? 'By creating an account, you agree to the ' : 'By signing in, you agree to the '}
+            <a href={legalUrl('terms')} target="_blank" rel="noopener">
+              Terms of service
+            </a>{' '}
+            and{' '}
+            <a href={legalUrl('service-terms')} target="_blank" rel="noopener">
+              Service terms
+            </a>
+            . The{' '}
+            <a href={legalUrl('privacy')} target="_blank" rel="noopener">
+              Privacy policy
+            </a>{' '}
+            says what ELUM keeps and why. ELUM does not sell or share your information.
+          </p>
+
           <button type="submit" className="elum-btn elum-btn--primary elum-btn--block auth__submit" disabled={busy || (checkNeeded && !pass)}>
             {busy ? <Loader size={20} brand label={isSignUp ? 'Creating your account' : 'Signing in'} /> : isSignUp ? 'Create account' : 'Sign in'}
           </button>
@@ -356,6 +373,13 @@ export function AuthPage({ mode }: { mode: Mode }) {
             {isSignUp ? 'Already have an ELUM account?' : 'New to ELUM?'} <Link to={switchHref}>{isSignUp ? 'Sign in' : 'Create an account'}</Link>
           </p>
         </form>
+        <nav className="auth__policies" aria-label="Policies">
+          {LEGAL_PAGES.filter((p) => p.path !== 'legal').map((p) => (
+            <a key={p.path} href={legalUrl(p.path, 'account')} target="_blank" rel="noopener">
+              {p.label}
+            </a>
+          ))}
+        </nav>
       </main>
     </div>
   );

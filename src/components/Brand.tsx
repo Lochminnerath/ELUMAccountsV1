@@ -20,7 +20,7 @@ export function AccountMark({ size = 32 }: { size?: number }) {
   );
 }
 
-export type Product = 'elum' | 'write' | 'type' | 'browse' | 'make' | 'store' | 'account' | 'inquire';
+export type Product = 'elum' | 'write' | 'type' | 'browse' | 'make' | 'store' | 'account' | 'inquire' | 'tune' | 'code' | 'capture';
 
 /** Monoline product glyphs (handoff Appendix C, plus Account), coloured by CSS. */
 const GLYPHS: Record<Product, React.ReactNode> = {
@@ -78,6 +78,28 @@ const GLYPHS: Record<Product, React.ReactNode> = {
       <circle cx="8.62" cy="14.55" r="4.6" />
       <circle cx="15.38" cy="14.55" r="4.6" />
       <circle cx="12" cy="12.6" r="1.3" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // Tune, Code and Capture: their app marks (public/brand/apps) drawn as single lines.
+  tune: (
+    <>
+      <circle cx="8.6" cy="10.8" r="5.6" />
+      <circle cx="14.3" cy="16" r="5.6" />
+      <circle cx="19.6" cy="4.8" r="1.7" fill="currentColor" stroke="none" />
+    </>
+  ),
+  code: (
+    <>
+      <circle cx="6.3" cy="12" r="4.6" />
+      <circle cx="12" cy="12" r="4.6" />
+      <circle cx="17.7" cy="12" r="4.6" />
+    </>
+  ),
+  capture: (
+    <>
+      <circle cx="10.4" cy="13.4" r="7.4" />
+      <circle cx="10.4" cy="13.4" r="3" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="5.6" r="2.8" />
     </>
   ),
 };

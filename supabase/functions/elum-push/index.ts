@@ -7,11 +7,11 @@
 // Needs secrets APNS_KEY_ID, APNS_TEAM_ID, APNS_PRIVATE_KEY (.p8 contents), APNS_TOPIC (bundle id),
 // optional APNS_SANDBOX=true, and FCM_SERVICE_ACCOUNT (the JSON). Without them it sends nothing.
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
-import { signInLinkEmail } from '../_shared/email.ts';
+import { signInLinkEmail, signInNoticeEmail } from '../_shared/email.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 const reply = (status: number, body: unknown) =>
@@ -86,10 +86,13 @@ async function emailLink(admin: SupabaseClient, jwt: string, session: string): P
     if (!data || to.length === 0) return 0;
 
     const accountUrl = (Deno.env.get('ACCOUNT_URL') || 'https://account.elum.space').replace(/\/+$/, '');
-    const email = signInLinkEmail(
-      { name: data.name || 'there', device: data.device, place: data.ip ? `the internet address ${data.ip}` : null, when: when(data.at), url: `${accountUrl}/approve#${token}` },
-      { assetBase: accountUrl },
-    );
+    const details = { name: data.name || 'there', device: data.device, place: data.ip ? `the internet address ${data.ip}` : null, when: when(data.at) };
+    const email = signInLinkEmail({ ...details, url: `${accountUrl}/approve#${token}` }, { assetBase: accountUrl });
+    // ELUM Type mailboxes get the news without the link: someone inside the mailbox must never be
+    // able to approve a sign-in to the account it belongs to.
+    const notice = signInNoticeEmail({ ...details, accountUrl }, { assetBase: accountUrl });
+    const { data: typeDomain } = await admin.rpc('type_domain');
+    const inside = (address: string) => typeof typeDomain === 'string' && typeDomain.length > 0 && address.toLowerCase().endsWith(`@${typeDomain.toLowerCase()}`);
     const sender = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
     let sent = 0;
     // One email per address, so nobody sees the others.
@@ -100,10 +103,10 @@ async function emailLink(admin: SupabaseClient, jwt: string, session: string): P
         body: JSON.stringify({
           sender: sender ? { name: sender[1] || 'ELUM', email: sender[2] } : { name: 'ELUM', email: from.trim() },
           to: [{ email: address }],
-          subject: email.subject,
-          htmlContent: email.html,
-          textContent: email.text,
-          tags: ['sign-in-approval'],
+          subject: (inside(address) ? notice : email).subject,
+          htmlContent: (inside(address) ? notice : email).html,
+          textContent: (inside(address) ? notice : email).text,
+          tags: [inside(address) ? 'sign-in-notice' : 'sign-in-approval'],
         }),
       });
       if (res.ok) sent++;

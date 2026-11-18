@@ -603,3 +603,17 @@
   gap: 16px;
   text-align: left;
 }
+
+.privacy-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 12px 0 0;
+}
+.privacy-links a {
+  font-weight: 600;
+  text-decoration: none;
+}
+.privacy-links a:hover {
+  text-decoration: underline;
+}

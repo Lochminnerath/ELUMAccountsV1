@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
     if (body.action === 'login-options') {
       // No email hint: listing an address's passkeys would tell anyone whether it has an account.
-      const options = await generateAuthenticationOptions({ rpID: site.rpId, userVerification: 'preferred', allowCredentials: [] });
+      const options = await generateAuthenticationOptions({ rpID: site.rpId, userVerification: 'required', allowCredentials: [] });
       const { data: id, error } = await db.rpc('elum_passkey_challenge', { p_kind: 'login', p_account: null, p_challenge: options.challenge, p_rp_id: site.rpId });
       if (error) return fromDbError(error);
       return ok({ challengeId: id, options });
@@ -86,6 +86,9 @@ Deno.serve(async (req) => {
     const challenge = await takeChallenge('login');
     if (!challenge) return fail('invalid', 'That took too long. Try again.');
     if (!response || typeof response.id !== 'string') return fail('invalid', 'The passkey did not answer. Try again.');
+    // A passkey can be tried only a few times in a row, wherever the tries come from.
+    const perKey = await db.rpc('elum_take_rate_limit', { p_key: `passkey_key:${response.id.slice(0, 200)}`, p_limit: 10, p_window_seconds: 600 });
+    if (perKey.data !== true) return fail('rate_limited', 'Too many tries. Wait a few minutes and try again.');
     const { data: found } = await db.rpc('elum_passkey_lookup', { p_credential_id: response.id });
     const key = found as { accountId: string; publicKey: string; counter: number; transports: AuthenticatorTransportFuture[]; email: string | null } | null;
     if (!key?.email) return fail('unauthorized', 'We do not know that passkey. It may have been removed from your account.');
@@ -97,7 +100,9 @@ Deno.serve(async (req) => {
         expectedOrigin: site.origin,
         expectedRPID: site.rpId,
         credential: { id: response.id, publicKey: fromB64url(key.publicKey), counter: Number(key.counter), transports: key.transports },
-        requireUserVerification: false,
+        // The device must check it is really you (fingerprint, face or device PIN) every time, so a
+        // passkey on a lost or unlocked device cannot be used by someone else.
+        requireUserVerification: true,
       });
     } catch {
       return fail('unauthorized', 'That passkey did not work. Try again, or use your password.');
@@ -128,7 +133,7 @@ Deno.serve(async (req) => {
       userDisplayName: String(user.user_metadata?.name ?? user.email ?? 'ELUM'),
       attestationType: 'none',
       excludeCredentials: (existing as Credential[] | null) ?? [],
-      authenticatorSelection: { residentKey: 'required', userVerification: 'preferred' },
+      authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
     });
     const { data: id, error } = await db.rpc('elum_passkey_challenge', { p_kind: 'register', p_account: user.id, p_challenge: options.challenge, p_rp_id: site.rpId });
     if (error) return fromDbError(error);
@@ -144,7 +149,7 @@ Deno.serve(async (req) => {
       expectedChallenge: challenge.challenge,
       expectedOrigin: site.origin,
       expectedRPID: site.rpId,
-      requireUserVerification: false,
+      requireUserVerification: true,
     });
   } catch {
     return fail('invalid', 'We could not save that passkey. Try again.');

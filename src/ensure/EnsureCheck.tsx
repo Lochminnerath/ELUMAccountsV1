@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import type { Challenge, Ensure, EnsureAction } from './ensure';
 import './ensure.css';
+import { friendly } from '../lib/friendly';
 
 /** How long the ring has to be held. Long enough to be deliberate, short enough not to annoy. */
 const HOLD_MS = 1100;
@@ -77,7 +78,7 @@ export function EnsureCheck({
       setMessage(null);
       onPass(pass);
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'The check did not go through. Try it again.');
+      setMessage(friendly(e instanceof Error ? e.message : 'The check did not go through. Try it again.'));
       setStep('error');
     }
   }, [ensure, onPass]);
